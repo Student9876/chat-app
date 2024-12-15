@@ -1,0 +1,43 @@
+{
+	"name": "chat-app",
+	"version": "0.1.0",
+	"private": true,
+	"scripts": {
+		"dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+		"dev:frontend": "next dev",
+		"dev:backend": "ts-node ./backend/index.ts",
+		"build": "next build",
+		"start": "next start",
+		"lint": "next lint"
+	},
+	"dependencies": {
+		"autoprefixer": "^10.4.20",
+		"axios": "^1.7.9",
+		"bcryptjs": "^2.4.3",
+		"cors": "^2.8.5",
+		"dotenv": "^16.4.7",
+		"express": "^4.21.2",
+		"jsonwebtoken": "^9.0.2",
+		"mongoose": "^8.9.0",
+		"next": "^15.1.0",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0"
+	},
+	"devDependencies": {
+		"@eslint/eslintrc": "^3",
+		"@types/bcryptjs": "^2.4.6",
+		"@types/cors": "^2.8.17",
+		"@types/express": "^5.0.0",
+		"@types/jsonwebtoken": "^9.0.7",
+		"@types/node": "^20.17.10",
+		"@types/react": "^19.0.1",
+		"@types/react-dom": "^19.0.2",
+		"concurrently": "^9.1.0",
+		"eslint": "^9",
+		"eslint-config-next": "15.1.0",
+		"postcss": "^8.4.49",
+		"tailwindcss": "^3.4.16",
+		"ts-node": "^10.9.2",
+		"typescript": "^5.7.2"
+	}
+}
