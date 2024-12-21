@@ -1,11 +1,25 @@
 "use client";
 
-import React from "react";
+import React, {useEffect, useState} from "react";
 import Link from "next/link";
 import {useAuth} from "../../app/context/AuthContext";
+import {useRouter} from "next/navigation";
 
 const Navbar = () => {
 	const {user, logout} = useAuth();
+	const router = useRouter();
+
+	// State to trigger re-render on user change
+	const [renderUser, setRenderUser] = useState(user);
+
+	useEffect(() => {
+		setRenderUser(user); // Update state when user changes
+	}, [user]);
+
+	const handleLogout = () => {
+		logout();
+		router.push("/login");
+	};
 
 	return (
 		<nav className="bg-gray-800 p-4 text-white">
@@ -13,13 +27,13 @@ const Navbar = () => {
 				<li>
 					<Link href="/">Home</Link>
 				</li>
-				{user ? (
+				{renderUser ? (
 					<>
 						<li>
 							<Link href="/dashboard">Dashboard</Link>
 						</li>
 						<li>
-							<button onClick={logout} className="text-red-500">
+							<button onClick={handleLogout} className="text-red-500">
 								Logout
 							</button>
 						</li>

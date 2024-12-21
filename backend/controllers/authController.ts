@@ -3,7 +3,7 @@ import User, { IUser } from "../models/User";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = process.env.JWT_SECRET || "defaultsecret";
+const JWT_SECRET = process.env.JWT_SECRET || "abcd";
 
 const generateToken = (userId: string) => {
     return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' });
@@ -53,7 +53,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             res.status(400).json({ error: "Invalid credentials" });
             return;
         }
-        const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: "1h" });
+        const token = generateToken(String(user._id));
         res.json({ token, user: { id: user._id, username: user.username, email: user.email } });
     } catch (error) {
         res.status(500).json({ error: (error as Error).message });

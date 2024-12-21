@@ -3,6 +3,7 @@
 import {useState} from "react";
 import axios from "axios";
 import {useRouter} from "next/navigation";
+import {useAuth} from "../../app/context/AuthContext";
 
 const LoginPage = () => {
 	const [email, setEmail] = useState<string>("");
@@ -11,6 +12,7 @@ const LoginPage = () => {
 	const [loading, setLoading] = useState<boolean>(false);
 
 	const router = useRouter();
+	const {login} = useAuth(); // Use the login function from AuthContext
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -18,15 +20,16 @@ const LoginPage = () => {
 		setError(null);
 
 		try {
-			const res = await axios.post("http://localhost:5000/api/login", {email, password});
+			const res = await axios.post("http://localhost:5000/api/auth/login", {email, password});
 			if (res.status === 200) {
-				// Store JWT token and user details
+				// Extract token and user data
 				const {token, user} = res.data;
-				localStorage.setItem("token", token);
-				localStorage.setItem("user", JSON.stringify(user));
 
-				// Redirect to dashboard
-				router.push("/dashboard");
+				// Use AuthContext login function
+				login(token, user);
+
+				// Redirect to Home
+				router.push("/");
 			}
 		} catch (err) {
 			if (axios.isAxiosError(err) && err.response) {
