@@ -3,7 +3,7 @@ import React, {useEffect, useState} from "react";
 import Chat from "./chat/Chat";
 import ChatTile from "./chat/ChatTile";
 import {useRouter} from "next/navigation";
-
+import {useAuth} from "./context/AuthContext";
 const MainPage: React.FC = () => {
 	const [selectedChat, setSelectedChat] = useState<string | null>(null);
 	const [isMobile, setIsMobile] = useState(false);
@@ -13,7 +13,7 @@ const MainPage: React.FC = () => {
 	const [searchResults, setSearchResults] = useState<any[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
-
+	const {logout} = useAuth();
 	// Check window size for responsiveness
 	useEffect(() => {
 		const checkWindowSize = () => {
@@ -29,11 +29,37 @@ const MainPage: React.FC = () => {
 	useEffect(() => {
 		const checkAuthentication = () => {
 			const token = localStorage.getItem("token");
+			// if (!token) {
+			// 	setIsLoggedIn(false);
+			// 	router.push("/login");
+			// } else {
+			// 	setIsLoggedIn(true);
+			// }
+
+			// Check if the token is present and valid
+
 			if (!token) {
 				setIsLoggedIn(false);
 				router.push("/login");
+				return;
 			} else {
-				setIsLoggedIn(true);
+				fetch("http://localhost:5000/api/auth/verify", {
+					headers: {Authorization: `Bearer ${token}`},
+				})
+					.then((response) => {
+						if (response.ok) {
+							setIsLoggedIn(true);
+						} else {
+							setIsLoggedIn(false);
+							router.push("/login");
+							logout();
+						}
+					})
+					.catch((error) => {
+						console.error("Failed to verify token:", error);
+						setIsLoggedIn(false);
+						router.push("/login");
+					});
 			}
 		};
 
@@ -68,6 +94,7 @@ const MainPage: React.FC = () => {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
+			console.log("Searched User ", data);
 			setSearchResults(data.results || []);
 		} catch (error) {
 			console.error("Failed to search users:", error);

@@ -3,9 +3,10 @@ import http from "http";
 import { Server } from "socket.io";
 import cors from "cors";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 import authRoutes from "./routes/authRoutes";
 import chatRoutes from "./routes/chatRoutes";
-import mongoose from "mongoose";
+import userRoutes from "./routes/userRoutes";
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use(cors({
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/chats", chatRoutes);
+app.use("/api/users", userRoutes);
 
 // Socket.IO real-time connection
 io.on("connection", (socket) => {

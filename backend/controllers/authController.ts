@@ -59,3 +59,20 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         res.status(500).json({ error: (error as Error).message });
     }
 };
+
+export const verify = async (req: Request, res: Response): Promise<void> => {
+    const token = req.headers.authorization?.split(' ')[1];
+    console.log("Token to be verified for authorization", token);
+    if (!token) {
+        res.status(401).json({ error: 'Unauthorized' });
+        return;
+    }
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        res.json({ user: decoded });
+        res.status(200);
+    } catch {
+        res.status(401).json({ error: 'Unauthorized' });
+        console.log("User token invalid");
+    }
+};
