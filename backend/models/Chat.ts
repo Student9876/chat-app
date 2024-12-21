@@ -1,16 +1,18 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
 interface IChat extends Document {
-    participants: mongoose.Types.ObjectId[];
-    type: "private" | "group";
-    createdAt: Date;
+    participants: string[];
+    type: string; // This might be the missing required field
+    lastUpdated: Date;
 }
 
-const chatSchema = new Schema<IChat>({
-    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }],
-    type: { type: String, enum: ["private", "group"], required: true },
-    createdAt: { type: Date, default: Date.now },
-});
+const ChatSchema: Schema = new Schema(
+    {
+        participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }],
+        type: { type: String, required: true }, // This field is causing the error
+        lastUpdated: { type: Date, required: true, default: Date.now },
+    },
+    { timestamps: true }
+);
 
-const Chat = mongoose.model<IChat>("Chat", chatSchema);
-export default Chat;
+export default mongoose.model<IChat>("Chat", ChatSchema);

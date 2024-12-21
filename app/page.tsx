@@ -8,9 +8,9 @@ const MainPage: React.FC = () => {
 	const [selectedChat, setSelectedChat] = useState<string | null>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [contacts, setContacts] = useState<any[]>([]);
+	const [contacts, setContacts] = useState<unknown[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<any[]>([]);
+	const [searchResults, setSearchResults] = useState<unknown[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 	const {logout} = useAuth();
@@ -106,6 +106,7 @@ const MainPage: React.FC = () => {
 	// Initiate a new chat
 	const initiateChat = async (userId: string) => {
 		const token = localStorage.getItem("token");
+		console.log("Initiating chat with user:", userId);
 		try {
 			const response = await fetch("http://localhost:5000/api/chats/initiate", {
 				method: "POST",
@@ -155,7 +156,7 @@ const MainPage: React.FC = () => {
 					{isLoading ? (
 						<div className="text-center text-gray-500">Loading...</div>
 					) : searchResults.length > 0 ? (
-						searchResults.map((user) => <ChatTile key={user.id} username={user.email} onClick={() => initiateChat(user.id)} />)
+						searchResults.map((user) => <ChatTile key={user.id} username={user.email} onClick={() => initiateChat(user._id)} />)
 					) : (
 						contacts.map((contact) => <ChatTile key={contact.chatId} username={contact.username} onClick={() => setSelectedChat(contact.chatId)} />)
 					)}
