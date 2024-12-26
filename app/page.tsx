@@ -65,10 +65,8 @@ const MainPage: React.FC = () => {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
-			setContacts(data.contacts || []);
-			if (data.contacts && data.contacts.length > 0 && !selectedChat) {
-				setSelectedChat(data.contacts[0].chatId);
-			}
+			console.log("Fetched contacts", data.chats);
+			setContacts(data.chats);
 		} catch (error) {
 			console.error("Failed to fetch contacts:", error);
 		} finally {
@@ -135,20 +133,29 @@ const MainPage: React.FC = () => {
 				{/* Contacts and Search Results */}
 				<div className="overflow-y-auto h-[calc(100vh-140px)]">
 					{isLoading ? (
-						<div key={"asas"} className="text-center text-gray-500">Loading...</div>
+						<div key="loading" className="text-center text-gray-500">
+							Loading...
+						</div>
 					) : searchResults.length > 0 ? (
-						searchResults.map((user) => <ChatTile key={user.id} username={user.email} onClick={() => initiateChat(user._id)} />)
-					) : contacts.length > 0 ? (
+						searchResults.map((user) => (
+							<ChatTile
+								key={user._id} // Added prefix to ensure uniqueness
+								username={user.email}
+								onClick={() => initiateChat(user._id)}
+							/>
+						))
+					) : contacts && contacts.length > 0 ? (
 						contacts.map((contact) => (
 							<ChatTile
-								key={contact.chatId}
-								username={contact.username}
-								// lastMessage={contact.lastMessage}
-								onClick={() => setSelectedChat(contact.chatId)}
+								key={contact._id} // Fallback if chatId is not available
+								username={contact._id} // Fallback if username is not available
+								onClick={() => setSelectedChat(contact._id)}
 							/>
 						))
 					) : (
-						<div key={"asas"} className="text-center text-gray-500">No contacts yet. Search to start a conversation.</div>
+						<div key="no-contacts" className="text-center text-gray-500">
+							No contacts yet. Search to start a conversation.
+						</div>
 					)}
 				</div>
 			</div>
