@@ -4,79 +4,71 @@ import Chat from "./chat/Chat";
 import ChatTile from "./chat/ChatTile";
 import {useRouter} from "next/navigation";
 import {useAuth} from "./context/AuthContext";
+
 const MainPage: React.FC = () => {
 	const [selectedChat, setSelectedChat] = useState<string | null>(null);
 	const [isMobile, setIsMobile] = useState(false);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [contacts, setContacts] = useState<unknown[]>([]);
+	const [contacts, setContacts] = useState<any[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<unknown[]>([]);
+	const [searchResults, setSearchResults] = useState<any[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 	const {logout} = useAuth();
-	// Check window size for responsiveness
-	useEffect(() => {
-		const checkWindowSize = () => {
-			setIsMobile(window.innerWidth < 768);
-		};
 
-		checkWindowSize();
-		window.addEventListener("resize", checkWindowSize);
-		return () => window.removeEventListener("resize", checkWindowSize);
+	// Responsive layout handler
+	useEffect(() => {
+		const handleResize = () => setIsMobile(window.innerWidth < 768);
+		handleResize();
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
 	}, []);
 
-	// Check user authentication
+	// Authentication check
 	useEffect(() => {
-		const checkAuthentication = () => {
+		const checkAuthentication = async () => {
 			const token = localStorage.getItem("token");
-			// if (!token) {
-			// 	setIsLoggedIn(false);
-			// 	router.push("/login");
-			// } else {
-			// 	setIsLoggedIn(true);
-			// }
-
-			// Check if the token is present and valid
-
 			if (!token) {
 				setIsLoggedIn(false);
 				router.push("/login");
 				return;
-			} else {
-				fetch("http://localhost:5000/api/auth/verify", {
+			}
+
+			try {
+				const response = await fetch("http://localhost:5000/api/auth/verify", {
 					headers: {Authorization: `Bearer ${token}`},
-				})
-					.then((response) => {
-						if (response.ok) {
-							setIsLoggedIn(true);
-						} else {
-							setIsLoggedIn(false);
-							router.push("/login");
-							logout();
-						}
-					})
-					.catch((error) => {
-						console.error("Failed to verify token:", error);
-						setIsLoggedIn(false);
-						router.push("/login");
-					});
+				});
+				if (response.ok) {
+					setIsLoggedIn(true);
+				} else {
+					throw new Error("Token verification failed");
+				}
+			} catch {
+				setIsLoggedIn(false);
+				logout();
+				router.push("/login");
 			}
 		};
-
 		checkAuthentication();
-	}, [router]);
+	}, [logout, router]);
 
-	// Fetch contacts from API
+	// Fetch contacts and update on login or new chat
+	useEffect(() => {
+		if (isLoggedIn) fetchContacts();
+	}, [isLoggedIn]);
+
 	const fetchContacts = async () => {
 		setIsLoading(true);
 		const token = localStorage.getItem("token");
-		console.log(token);
 		try {
 			const response = await fetch("http://localhost:5000/api/chats", {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
 			setContacts(data.contacts || []);
+			if (data.contacts && data.contacts.length > 0 && !selectedChat) {
+				setSelectedChat(data.contacts[0].chatId);
+			}
 		} catch (error) {
 			console.error("Failed to fetch contacts:", error);
 		} finally {
@@ -84,7 +76,6 @@ const MainPage: React.FC = () => {
 		}
 	};
 
-	// Search for users
 	const searchUsers = async () => {
 		if (!searchQuery.trim()) return;
 		setIsLoading(true);
@@ -94,7 +85,6 @@ const MainPage: React.FC = () => {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
-			console.log("Searched User ", data);
 			setSearchResults(data.results || []);
 		} catch (error) {
 			console.error("Failed to search users:", error);
@@ -103,10 +93,8 @@ const MainPage: React.FC = () => {
 		}
 	};
 
-	// Initiate a new chat
 	const initiateChat = async (userId: string) => {
 		const token = localStorage.getItem("token");
-		console.log("Initiating chat with user:", userId);
 		try {
 			const response = await fetch("http://localhost:5000/api/chats/initiate", {
 				method: "POST",
@@ -119,68 +107,60 @@ const MainPage: React.FC = () => {
 			const data = await response.json();
 			if (data.chatId) {
 				setSelectedChat(data.chatId);
-				fetchContacts();
+				fetchContacts(); // Refresh contacts
 			}
 		} catch (error) {
 			console.error("Failed to initiate chat:", error);
 		}
 	};
 
-	// Initial fetch
-	useEffect(() => {
-		if (isLoggedIn) {
-			fetchContacts();
-		}
-	}, [isLoggedIn]);
-
 	if (!isLoggedIn) return null;
 
 	return (
-		<div className="flex flex-col md:flex-row h-screen">
+		<div className="flex flex-col md:flex-row h-screen bg-gray-100">
 			{/* Sidebar */}
-			<div className={`md:w-1/3 w-full ${isMobile ? "hidden" : ""} bg-gray-50 p-4`}>
-				{/* Search Input */}
+			<div className="md:w-1/3 w-full bg-white shadow-lg p-4">
+				{/* Search Section */}
 				<div className="mb-4">
 					<input
 						type="text"
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						onKeyDown={(e) => e.key === "Enter" && searchUsers()}
-						className="w-full p-3 border border-gray-300 rounded-lg"
-						placeholder="Search by email"
+						className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
+						placeholder="Search by email or username"
 					/>
 				</div>
 
-				{/* Chat Tiles */}
-				<div>
+				{/* Contacts and Search Results */}
+				<div className="overflow-y-auto h-[calc(100vh-140px)]">
 					{isLoading ? (
-						<div className="text-center text-gray-500">Loading...</div>
+						<div key={"asas"} className="text-center text-gray-500">Loading...</div>
 					) : searchResults.length > 0 ? (
 						searchResults.map((user) => <ChatTile key={user.id} username={user.email} onClick={() => initiateChat(user._id)} />)
+					) : contacts.length > 0 ? (
+						contacts.map((contact) => (
+							<ChatTile
+								key={contact.chatId}
+								username={contact.username}
+								// lastMessage={contact.lastMessage}
+								onClick={() => setSelectedChat(contact.chatId)}
+							/>
+						))
 					) : (
-						contacts.map((contact) => <ChatTile key={contact.chatId} username={contact.username} onClick={() => setSelectedChat(contact.chatId)} />)
+						<div key={"asas"} className="text-center text-gray-500">No contacts yet. Search to start a conversation.</div>
 					)}
 				</div>
 			</div>
 
 			{/* Chat Area */}
-			<div className={`md:w-2/3 w-full ${selectedChat ? "" : "hidden"} bg-gray-100 p-4`}>
-				{selectedChat ? <Chat chatId={selectedChat} /> : <div>Select a user to start chatting</div>}
+			<div className="md:w-2/3 w-full bg-gray-50 p-4">
+				{selectedChat ? (
+					<Chat chatId={selectedChat} />
+				) : (
+					<div className="flex items-center justify-center h-full text-gray-500">Select a chat to start messaging</div>
+				)}
 			</div>
-
-			{/* Mobile View */}
-			{isMobile && selectedChat && (
-				<div className="fixed top-0 left-0 right-0 bg-white shadow-lg p-4 z-50">
-					<div className="flex justify-between items-center">
-						<h2 className="text-xl font-semibold">Chat with {selectedChat}</h2>
-						<button className="p-2 bg-blue-600 text-white rounded-lg">Voice Call</button>
-					</div>
-					<div className="mt-3">
-						<input type="text" className="w-full p-3 border border-gray-300 rounded-lg" placeholder="Type a message..." />
-						<button className="mt-2 w-full p-3 bg-blue-600 text-white rounded-lg">Send</button>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 };

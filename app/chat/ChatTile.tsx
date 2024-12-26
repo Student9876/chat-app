@@ -1,5 +1,3 @@
-// app/chat/ChatTile.tsx
-
 import React from "react";
 
 interface ChatTileProps {
