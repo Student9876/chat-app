@@ -58,6 +58,7 @@ export const initiateChat = async (req: AuthenticatedRequest, res: Response) => 
         // If no chat exists, create a new one
         if (!chat) {
             chat = new Chat({
+                title: targetUser.username,
                 participants: [userId, targetUserId],
                 type: "private", // Set the required field value
                 lastUpdated: new Date(),

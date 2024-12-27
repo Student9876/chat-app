@@ -7,7 +7,6 @@ import {useAuth} from "./context/AuthContext";
 
 const MainPage: React.FC = () => {
 	const [selectedChat, setSelectedChat] = useState<string | null>(null);
-	const [isMobile, setIsMobile] = useState(false);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [contacts, setContacts] = useState<any[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -15,14 +14,6 @@ const MainPage: React.FC = () => {
 	const [isLoading, setIsLoading] = useState(false);
 	const router = useRouter();
 	const {logout} = useAuth();
-
-	// Responsive layout handler
-	useEffect(() => {
-		const handleResize = () => setIsMobile(window.innerWidth < 768);
-		handleResize();
-		window.addEventListener("resize", handleResize);
-		return () => window.removeEventListener("resize", handleResize);
-	}, []);
 
 	// Authentication check
 	useEffect(() => {
@@ -148,7 +139,7 @@ const MainPage: React.FC = () => {
 						contacts.map((contact) => (
 							<ChatTile
 								key={contact._id} // Fallback if chatId is not available
-								username={contact._id} // Fallback if username is not available
+								username={contact.title} // Fallback if username is not available
 								onClick={() => setSelectedChat(contact._id)}
 							/>
 						))
