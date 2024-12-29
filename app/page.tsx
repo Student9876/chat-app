@@ -106,7 +106,7 @@ const MainPage: React.FC = () => {
 	if (!isLoggedIn) return null;
 
 	return (
-		<div className="flex flex-col md:flex-row h-screen bg-gray-100">
+		<div className="flex flex-col md:flex-row h-[90vh] bg-gray-100">
 			{/* Sidebar */}
 			<div className="md:w-1/3 w-full bg-white shadow-lg p-4">
 				{/* Search Section */}
@@ -122,7 +122,7 @@ const MainPage: React.FC = () => {
 				</div>
 
 				{/* Contacts and Search Results */}
-				<div className="overflow-y-auto h-[calc(100vh-140px)]">
+				<div className="overflow-y-auto h-[calc(90vh-100px)]">
 					{isLoading ? (
 						<div key="loading" className="text-center text-gray-500">
 							Loading...
@@ -152,7 +152,7 @@ const MainPage: React.FC = () => {
 			</div>
 
 			{/* Chat Area */}
-			<div className="md:w-2/3 w-full bg-gray-50 p-4">
+			<div className="h-full md:w-2/3 w-full bg-gray-50 p-4">
 				{selectedChat ? (
 					<Chat chatId={selectedChat} />
 				) : (
