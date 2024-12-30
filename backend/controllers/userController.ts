@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 import User from "../models/User";
 
+interface AuthenticatedRequest extends Request {
+    user?: {
+        id: string;
+        email: string;
+    };
+}
 
 export const searchUsers = async (req: Request, res: Response) => {
     const { query } = req.query;
@@ -17,3 +23,10 @@ export const searchUsers = async (req: Request, res: Response) => {
     }
 }
 
+
+export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.id;
+    console.log("Fetching current user:", userId);
+    res.status(200).json({ user: req.user });
+    return;
+}

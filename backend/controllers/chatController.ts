@@ -56,9 +56,14 @@ export const initiateChat = async (req: AuthenticatedRequest, res: Response) => 
         });
 
         // If no chat exists, create a new one
+        const user = await User.findById(userId);
+        const userName = user?.username;
         if (!chat) {
             chat = new Chat({
-                title: targetUser.username,
+                title: {
+                    [targetUserId as string]: userName,
+                    [userId as string]: targetUser.username || "",
+                },
                 participants: [userId, targetUserId],
                 type: "private", // Set the required field value
                 lastUpdated: new Date(),

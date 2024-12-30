@@ -10,7 +10,8 @@ interface IChat extends Document {
 
 const ChatSchema: Schema = new Schema(
     {
-        title: { type: String, required: true },
+        title: { type: Object, required: true },
+        // title: { type: String, required: true },
         participants: [
             { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         ],

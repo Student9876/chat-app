@@ -12,6 +12,7 @@ const MainPage: React.FC = () => {
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<any[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [user, setUser] = useState<any | null>(null);
 	const router = useRouter();
 	const {logout} = useAuth();
 
@@ -24,7 +25,6 @@ const MainPage: React.FC = () => {
 				router.push("/login");
 				return;
 			}
-
 			try {
 				const response = await fetch("http://localhost:5000/api/auth/verify", {
 					headers: {Authorization: `Bearer ${token}`},
@@ -65,6 +65,24 @@ const MainPage: React.FC = () => {
 		}
 	};
 
+	useEffect(() => {
+		fetchCurrentUser();
+	}, []);
+
+	const fetchCurrentUser = async () => {
+		const token = localStorage.getItem("token");
+		try {
+			const response = await fetch("http://localhost:5000/api/users/currentUser", {
+				headers: {Authorization: `Bearer ${token}`},
+			});
+			const data = await response.json();
+			console.log("Current user:", data);
+			setUser(data);
+		} catch (error) {
+			console.error("Failed to fetch current user:", error);
+		}
+	};
+
 	const searchUsers = async () => {
 		if (!searchQuery.trim()) return;
 		setIsLoading(true);
@@ -75,6 +93,7 @@ const MainPage: React.FC = () => {
 			});
 			const data = await response.json();
 			setSearchResults(data.results || []);
+			console.log("Search results:", data.results);
 		} catch (error) {
 			console.error("Failed to search users:", error);
 		} finally {
@@ -101,6 +120,11 @@ const MainPage: React.FC = () => {
 		} catch (error) {
 			console.error("Failed to initiate chat:", error);
 		}
+	};
+	const getOtherUserName = (chat: any) => {
+		console.log(chat, user.user);
+		const otherUser = chat.title[user.user.id];
+		return otherUser ? otherUser : "Unknown User";
 	};
 
 	if (!isLoggedIn) return null;
@@ -139,7 +163,7 @@ const MainPage: React.FC = () => {
 						contacts.map((contact) => (
 							<ChatTile
 								key={contact._id} // Fallback if chatId is not available
-								username={contact.title} // Fallback if username is not available
+								username={getOtherUserName(contact, contact._id)} // Fallback if username is not available
 								onClick={() => setSelectedChat(contact._id)}
 							/>
 						))
