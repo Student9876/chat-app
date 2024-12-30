@@ -176,7 +176,7 @@ const MainPage: React.FC = () => {
 			</div>
 
 			{/* Chat Area */}
-			<div className="h-full md:w-2/3 w-full bg-gray-50 p-4">
+			<div className="h-full md:w-2/3 w-full bg-gray-50">
 				{selectedChat ? (
 					<Chat chatId={selectedChat} />
 				) : (

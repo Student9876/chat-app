@@ -30,9 +30,6 @@ const Navbar = () => {
 				{renderUser ? (
 					<>
 						<li>
-							<Link href="/dashboard">Dashboard</Link>
-						</li>
-						<li>
 							<button onClick={handleLogout} className="text-red-500">
 								Logout
 							</button>
