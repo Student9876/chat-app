@@ -163,7 +163,7 @@ const MainPage: React.FC = () => {
 						contacts.map((contact) => (
 							<ChatTile
 								key={contact._id} // Fallback if chatId is not available
-								username={getOtherUserName(contact, contact._id)} // Fallback if username is not available
+								username={getOtherUserName(contact)} // Fallback if username is not available
 								onClick={() => setSelectedChat(contact._id)}
 							/>
 						))
