@@ -1,9 +1,5 @@
 import React from "react";
-
-interface ChatTileProps {
-	username: string;
-	onClick: () => void;
-}
+import {ChatTileProps} from "@/types";
 
 const ChatTile: React.FC<ChatTileProps> = ({username, onClick}) => {
 	return (

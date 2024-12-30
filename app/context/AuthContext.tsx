@@ -1,23 +1,11 @@
 "use client";
-
 import {createContext, useContext, useState, useEffect, ReactNode} from "react";
-
-interface User {
-	id: string;
-	username: string;
-	email: string;
-}
-
-interface AuthContextProps {
-	user: User | null;
-	login: (token: string, user: User) => void;
-	logout: () => void;
-}
+import {UserType, AuthContextProps} from "@/types";
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({children}: {children: ReactNode}) => {
-	const [user, setUser] = useState<User | null>(null);
+	const [user, setUser] = useState<UserType | null>(null);
 
 	useEffect(() => {
 		// On mount, check if user data is stored in localStorage
@@ -27,7 +15,7 @@ export const AuthProvider = ({children}: {children: ReactNode}) => {
 		}
 	}, []);
 
-	const login = (token: string, user: User) => {
+	const login = (token: string, user: UserType) => {
 		localStorage.setItem("token", token);
 		localStorage.setItem("user", JSON.stringify(user));
 		setUser(user);

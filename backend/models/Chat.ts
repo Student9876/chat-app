@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 interface IChat extends Document {
-    title: string;
+    title: Record<string, string>; // Can be either an object or string
     participants: string[]; // Array of User IDs
     type: string; // E.g., 'private', 'group'
     lastUpdated: Date; // Last activity timestamp
@@ -11,7 +11,6 @@ interface IChat extends Document {
 const ChatSchema: Schema = new Schema(
     {
         title: { type: Object, required: true },
-        // title: { type: String, required: true },
         participants: [
             { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         ],

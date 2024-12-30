@@ -4,15 +4,16 @@ import Chat from "./chat/Chat";
 import ChatTile from "./chat/ChatTile";
 import {useRouter} from "next/navigation";
 import {useAuth} from "./context/AuthContext";
+import {UserType, ChatType} from "@/types";
 
 const MainPage: React.FC = () => {
 	const [selectedChat, setSelectedChat] = useState<string | null>(null);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [contacts, setContacts] = useState<any[]>([]);
+	const [contacts, setContacts] = useState<ChatType[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<any[]>([]);
+	const [searchResults, setSearchResults] = useState<ChatType[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [user, setUser] = useState<any | null>(null);
+	const [user, setUser] = useState<UserType>({id: "", username: "", email: ""});
 	const router = useRouter();
 	const {logout} = useAuth();
 
@@ -77,7 +78,7 @@ const MainPage: React.FC = () => {
 			});
 			const data = await response.json();
 			console.log("Current user:", data);
-			setUser(data);
+			setUser(data.user);
 		} catch (error) {
 			console.error("Failed to fetch current user:", error);
 		}
@@ -121,9 +122,8 @@ const MainPage: React.FC = () => {
 			console.error("Failed to initiate chat:", error);
 		}
 	};
-	const getOtherUserName = (chat: any) => {
-		console.log(chat, user.user);
-		const otherUser = chat.title[user.user.id];
+	const getOtherUserName = (chat: ChatType) => {
+		const otherUser = chat.title[user.id];
 		return otherUser ? otherUser : "Unknown User";
 	};
 
@@ -154,17 +154,17 @@ const MainPage: React.FC = () => {
 					) : searchResults.length > 0 ? (
 						searchResults.map((user) => (
 							<ChatTile
-								key={user._id} // Added prefix to ensure uniqueness
-								username={user.email}
-								onClick={() => initiateChat(user._id)}
+								key={String(user._id)} // Added prefix to ensure uniqueness
+								username={String(user._id)}
+								onClick={() => initiateChat(String(user._id))}
 							/>
 						))
 					) : contacts && contacts.length > 0 ? (
 						contacts.map((contact) => (
 							<ChatTile
-								key={contact._id} // Fallback if chatId is not available
+								key={String(contact._id)} // Fallback if chatId is not available
 								username={getOtherUserName(contact)} // Fallback if username is not available
-								onClick={() => setSelectedChat(contact._id)}
+								onClick={() => setSelectedChat(String(contact._id))}
 							/>
 						))
 					) : (
