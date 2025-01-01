@@ -13,7 +13,7 @@ const Chat = ({chatId}: {chatId: string}) => {
 	const [token, setToken] = useState<string | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-	const fetchMessages = async () => {
+	const fetchMessages = async (chatId: string) => {
 		try {
 			const response = await fetch(`http://localhost:5000/api/messages/${chatId}`);
 			const data = await response.json();
@@ -60,7 +60,7 @@ const Chat = ({chatId}: {chatId: string}) => {
 	}, [chatId]);
 
 	useEffect(() => {
-		fetchMessages();
+		fetchMessages(chatId);
 	}, [chatId]);
 
 	useEffect(() => {
