@@ -61,7 +61,7 @@ const Chat = ({chatId}: {chatId: string}) => {
 
 	useEffect(() => {
 		fetchMessages();
-	}, [chatId]);
+	}, []);
 
 	useEffect(() => {
 		scrollToBottom();
