@@ -22,7 +22,7 @@ const Navbar = () => {
 	};
 
 	return (
-		<nav className="bg-gray-800 p-4 text-white">
+		<nav className="bg-gradient-to-r from-blue-600 to-indigo-500 p-4 text-white">
 			<ul className="flex space-x-6">
 				<li>
 					<Link href="/">Home</Link>

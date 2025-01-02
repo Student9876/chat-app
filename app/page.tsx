@@ -23,7 +23,7 @@ const MainPage: React.FC = () => {
 			const token = localStorage.getItem("token");
 			if (!token) {
 				setIsLoggedIn(false);
-				router.push("/login");
+				// router.push("/login");
 				return;
 			}
 			try {
@@ -127,64 +127,88 @@ const MainPage: React.FC = () => {
 		return otherUser ? otherUser : "Unknown User";
 	};
 
-	if (!isLoggedIn) return null;
+	if (!isLoggedIn) {
+		return (
+			<div className="relative h-screen bg-gray-100">
+				{/* Angled Background Section */}
+				<div
+					className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-500"
+					style={{
+						clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 40%)", // Creates a 60-degree angle
+					}}></div>
 
-	return (
-		<div className="flex flex-col md:flex-row h-[90vh] bg-gray-100">
-			{/* Sidebar */}
-			<div className="md:w-1/3 w-full bg-white shadow-lg p-4">
-				{/* Search Section */}
-				<div className="mb-4">
-					<input
-						type="text"
-						value={searchQuery}
-						onChange={(e) => setSearchQuery(e.target.value)}
-						onKeyDown={(e) => e.key === "Enter" && searchUsers()}
-						className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-						placeholder="Search by email or username"
-					/>
+				{/* Content Section */}
+				<div className="absolute inset-0 flex flex-col items-center text-white">
+					<h1 className="text-3xl md:text-4xl mt-[50%] md:mt-[20%] font-bold mb-4">Welcome to ChatApp</h1>
+					<p className="mb-6 text-lg text-center px-4 sm:px-0">
+						Connect with friends and colleagues in real-time. Join us now to experience seamless communication!
+					</p>
+					<button
+						onClick={() => router.push("/register")}
+						className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg shadow-lg hover:bg-gray-100 transition duration-300">
+						Sign Up
+					</button>
+				</div>
+			</div>
+		);
+	} else {
+		return (
+			<div className="flex flex-col md:flex-row h-[90vh] bg-gray-100">
+				{/* Sidebar */}
+				<div className="md:w-1/3 w-full bg-white shadow-lg p-4">
+					{/* Search Section */}
+					<div className="mb-4">
+						<input
+							type="text"
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							onKeyDown={(e) => e.key === "Enter" && searchUsers()}
+							className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
+							placeholder="Search by email or username"
+						/>
+					</div>
+
+					{/* Contacts and Search Results */}
+					<div className="overflow-y-auto h-[calc(90vh-100px)]">
+						{isLoading ? (
+							<div key="loading" className="text-center text-gray-500">
+								Loading...
+							</div>
+						) : searchResults.length > 0 ? (
+							searchResults.map((user) => (
+								<ChatTile
+									key={String(user._id)} // Added prefix to ensure uniqueness
+									username={String(user._id)}
+									onClick={() => initiateChat(String(user._id))}
+								/>
+							))
+						) : contacts && contacts.length > 0 ? (
+							contacts.map((contact) => (
+								<ChatTile
+									key={String(contact._id)} // Fallback if chatId is not available
+									username={getOtherUserName(contact)} // Fallback if username is not available
+									onClick={() => setSelectedChat(String(contact._id))}
+								/>
+							))
+						) : (
+							<div key="no-contacts" className="text-center text-gray-500">
+								No contacts yet. Search to start a conversation.
+							</div>
+						)}
+					</div>
 				</div>
 
-				{/* Contacts and Search Results */}
-				<div className="overflow-y-auto h-[calc(90vh-100px)]">
-					{isLoading ? (
-						<div key="loading" className="text-center text-gray-500">
-							Loading...
-						</div>
-					) : searchResults.length > 0 ? (
-						searchResults.map((user) => (
-							<ChatTile
-								key={String(user._id)} // Added prefix to ensure uniqueness
-								username={String(user._id)}
-								onClick={() => initiateChat(String(user._id))}
-							/>
-						))
-					) : contacts && contacts.length > 0 ? (
-						contacts.map((contact) => (
-							<ChatTile
-								key={String(contact._id)} // Fallback if chatId is not available
-								username={getOtherUserName(contact)} // Fallback if username is not available
-								onClick={() => setSelectedChat(String(contact._id))}
-							/>
-						))
+				{/* Chat Area */}
+				<div className="h-full md:w-2/3 w-full bg-gray-50">
+					{selectedChat ? (
+						<Chat chatId={selectedChat} />
 					) : (
-						<div key="no-contacts" className="text-center text-gray-500">
-							No contacts yet. Search to start a conversation.
-						</div>
+						<div className="flex items-center justify-center h-full text-gray-500">Select a chat to start messaging</div>
 					)}
 				</div>
 			</div>
-
-			{/* Chat Area */}
-			<div className="h-full md:w-2/3 w-full bg-gray-50">
-				{selectedChat ? (
-					<Chat chatId={selectedChat} />
-				) : (
-					<div className="flex items-center justify-center h-full text-gray-500">Select a chat to start messaging</div>
-				)}
-			</div>
-		</div>
-	);
+		);
+	}
 };
 
 export default MainPage;
