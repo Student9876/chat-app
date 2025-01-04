@@ -7,7 +7,7 @@ import {useAuth} from "./context/AuthContext";
 import {UserType, ChatType} from "@/types";
 
 const MainPage: React.FC = () => {
-	const [selectedChat, setSelectedChat] = useState<string | null>(null);
+	const [selectedChat, setSelectedChat] = useState<ChatType | null>(null);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [contacts, setContacts] = useState<ChatType[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -122,9 +122,10 @@ const MainPage: React.FC = () => {
 			console.error("Failed to initiate chat:", error);
 		}
 	};
-	const getOtherUserName = (chat: ChatType) => {
-		const otherUser = chat.title[user.id];
-		return otherUser ? otherUser : "Unknown User";
+	const getOtherUser = (chat: ChatType) => {
+		const otherUserName = chat.title[user.id].userName || "Unknown User";
+		const otherUserId = chat.title[user.id].userId || "";
+		return {userName: otherUserName, userId: otherUserId};
 	};
 
 	if (!isLoggedIn) {
@@ -186,8 +187,8 @@ const MainPage: React.FC = () => {
 							contacts.map((contact) => (
 								<ChatTile
 									key={String(contact._id)} // Fallback if chatId is not available
-									username={getOtherUserName(contact)} // Fallback if username is not available
-									onClick={() => setSelectedChat(String(contact._id))}
+									username={getOtherUser(contact).userName} // Fallback if username is not available
+									onClick={() => setSelectedChat(contact)}
 								/>
 							))
 						) : (
@@ -200,8 +201,8 @@ const MainPage: React.FC = () => {
 
 				{/* Chat Area */}
 				<div className="h-full md:w-2/3 w-full bg-gray-50">
-					{selectedChat ? (
-						<Chat chatId={selectedChat} />
+					{selectedChat && user ? (
+						<Chat chatId={String(selectedChat._id)} currentUser={getOtherUser(selectedChat)} />
 					) : (
 						<div className="flex items-center justify-center h-full text-gray-500">Select a chat to start messaging</div>
 					)}

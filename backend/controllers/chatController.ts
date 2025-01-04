@@ -2,6 +2,7 @@ import { Request, Response, NextFunction, RequestHandler } from "express";
 import Chat from "../models/Chat";
 import User from "../models/User";
 
+
 // Custom request type with user property
 interface AuthenticatedRequest extends Request {
     user?: {
@@ -61,8 +62,8 @@ export const initiateChat = async (req: AuthenticatedRequest, res: Response) => 
         if (!chat) {
             chat = new Chat({
                 title: {
-                    [targetUserId as string]: userName,
-                    [userId as string]: targetUser.username || "",
+                    [targetUserId as string]: { userName: userName, userId: userId },
+                    [userId as string]: { userName: targetUser.username || "", userId: targetUserId },
                 },
                 participants: [userId, targetUserId],
                 type: "private", // Set the required field value

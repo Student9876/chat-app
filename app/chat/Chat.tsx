@@ -3,9 +3,9 @@ import {io, Socket} from "socket.io-client";
 import Image from "next/image";
 import attachIcon from "./icons/attach-file.png";
 import sendIcon from "./icons/send.png";
-import {MessageType, UserType} from "@/types";
+import {MessageType, UserType, TitleType} from "@/types";
 
-const Chat = ({chatId}: {chatId: string}) => {
+const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) => {
 	const [messages, setMessages] = useState<MessageType[]>([]);
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [newMessage, setNewMessage] = useState("");
@@ -125,6 +125,14 @@ const Chat = ({chatId}: {chatId: string}) => {
 
 	return (
 		<div className="flex flex-col h-full">
+			{/* User profile section */}
+			<div className="p-4 bg-white shadow-md flex items-center">
+				{/* <Image src={user?.image || "/default-profile.jpg"} alt="User profile" className="w-12 h-12 rounded-full" /> */}
+				<div className="ml-4">
+					<h2 className="text-lg font-semibold">{currentUser.userName}</h2>
+					<p className="text-sm text-gray-500">{currentUser.userId}</p>
+				</div>
+			</div>
 			{/* Messages Section */}
 			<div className="flex-1 overflow-y-auto p-4 bg-gray-50">
 				{messages.map((message) => (

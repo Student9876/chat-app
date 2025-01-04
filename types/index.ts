@@ -24,9 +24,14 @@ export interface UserType {
     email: string;
 }
 
+export interface TitleType {
+    userName: string;
+    userId: string;
+}
+
 export interface ChatType {
     _id: Types.ObjectId; // Mongoose ObjectId
-    title: Record<string, string>; // Can be either an object or string
+    title: Record<string, TitleType>; // Can be either an object or string
     participants: Types.ObjectId[]; // Array of User IDs
     type: "private" | "group"; // Enum for chat type
     lastUpdated: Date; // Timestamp for last updated time
