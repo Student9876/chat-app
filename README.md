@@ -1,4 +1,4 @@
-# CHAT APPLICATION
+# REAL TIME CHAT APPLICATION
 
 This is a NodeJs based application with NextJs as frontend to utilize the API endpoints to send or receive message, images etc.
 
