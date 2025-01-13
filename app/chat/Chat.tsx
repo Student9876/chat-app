@@ -99,25 +99,29 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 		}
 	};
 
-	const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-		if (!e.target.files || !e.target.files[0]) return;
-		const file = e.target.files[0];
-
+	const handleImageUpload = async (chatId: string, file: File) => {
 		const formData = new FormData();
 		formData.append("image", file);
 		formData.append("chatId", chatId);
 		formData.append("senderId", user?.id || "");
 
+		const token = localStorage.getItem("token");
+
 		try {
-			const response = await fetch("http://localhost:5000/api/messages/send-image", {
+			const response = await fetch("http://localhost:5000/api/images/upload", {
 				method: "POST",
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
+				headers: {Authorization: `Bearer ${token}`},
 				body: formData,
 			});
+
 			const data = await response.json();
-			socket?.emit("sendMessage", data);
+
+			if (response.ok) {
+				const savedMessage = data.savedMessage;
+				setMessages((prevMessages) => [...prevMessages, savedMessage]);
+			} else {
+				console.error("Image upload failed:", data.message);
+			}
 		} catch (error) {
 			console.error("Error uploading image:", error);
 		}
@@ -127,12 +131,12 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 		<div className="flex flex-col h-full">
 			{/* User profile section */}
 			<div className="p-4 bg-white shadow-md flex items-center">
-				{/* <Image src={user?.image || "/default-profile.jpg"} alt="User profile" className="w-12 h-12 rounded-full" /> */}
 				<div className="ml-4">
 					<h2 className="text-lg font-semibold">{currentUser.userName}</h2>
 					<p className="text-sm text-gray-500">{currentUser.userId}</p>
 				</div>
 			</div>
+
 			{/* Messages Section */}
 			<div className="flex-1 overflow-y-auto p-4 bg-gray-50">
 				{messages.map((message) => (
@@ -140,7 +144,13 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 						{message.type === "text" ? (
 							<div className="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md">{message.content}</div>
 						) : (
-							<Image src={message.content} alt="Sent image" className="inline-block max-w-xs max-h-40 rounded-lg shadow-md" />
+							<Image
+								src={message.content}
+								alt="Sent image"
+								className="inline-block max-w-xs max-h-40 rounded-lg shadow-md"
+								width={200}
+								height={200}
+							/>
 						)}
 					</div>
 				))}
@@ -152,7 +162,13 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 				<label htmlFor="imageUpload" className="cursor-pointer">
 					<Image src={attachIcon} alt="Attachment" className="w-6 h-6 mr-4" />
 				</label>
-				<input id="imageUpload" type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+				<input
+					id="imageUpload"
+					type="file"
+					accept="image/*"
+					className="hidden"
+					onChange={(e) => handleImageUpload(chatId, e.target.files?.[0] as File)}
+				/>
 				<input
 					type="text"
 					value={newMessage}
@@ -164,9 +180,6 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 				<label onClick={sendMessage} className="cursor-pointer">
 					<Image src={sendIcon} alt="Attachment" className="w-6 h-6 ml-4" />
 				</label>
-				{/* <button onClick={sendMessage} className="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-					Send
-				</button> */}
 			</div>
 		</div>
 	);

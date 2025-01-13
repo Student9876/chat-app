@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import Message from "../models/Message";
 import Chat from "../models/Chat";
-// import { getIO } from "../socket"; // Import the Socket.IO instance
 
 // Send a new message
 import mongoose from "mongoose";
@@ -39,9 +38,6 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
         await chat.save();
         res.status(200).json(newMessage);
 
-        // Emit the message via Socket.IO
-        // io.to(chatId).emit("messageReceived", newMessage);
-
     } catch (error) {
         console.error("Error sending message:", error);
         res.status(500).json({ message: "Failed to send message" });
@@ -62,5 +58,30 @@ export const getMessages = async (req: Request, res: Response): Promise<void> =>
     } catch (error) {
         console.error("Error fetching messages:", error);
         res.status(500).json({ message: "Failed to fetch messages" });
+    }
+};
+
+
+export const saveImageMessage = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { chatId, senderId } = req.body;
+        const { fileUrl } = req.body; // This is returned by `uploadImage`
+
+        if (!chatId || !senderId || !fileUrl) {
+            res.status(400).json({ message: "chatId, senderId, and fileUrl are required" });
+            return;
+        }
+
+        const newMessage = await Message.create({
+            chatId,
+            senderId,
+            content: fileUrl,
+            type: "image",
+        });
+
+        res.status(201).json(newMessage);
+    } catch (error) {
+        console.error("Error saving image message:", error);
+        res.status(500).json({ message: "Error saving image message", error });
     }
 };

@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { EventEmitter } from "events";
 
 // Interfaces 
 
@@ -49,4 +50,16 @@ export interface AuthContextProps {
 export interface ChatTileProps {
     username: string;
     onClick: () => void;
+}
+
+
+// Define the MegaFile interface
+export interface MegaFile {
+    link: (callback: (err: Error | null, link: string) => void) => void;
+}
+
+// Define the MegaUploadStream interface
+export interface MegaUploadStream extends EventEmitter {
+    on(event: "complete", listener: (file: MegaFile) => void): this;
+    on(event: "error", listener: (err: Error) => void): this;
 }

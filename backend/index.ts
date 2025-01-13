@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import chatRoutes from "./routes/chatRoutes";
 import userRoutes from "./routes/userRoutes";
 import messageRoutes from "./routes/messageRoutes";
+import imageRoutes from "./routes/imageRoutes";
 
 // Socket.IO setup
 import { initializeSocket } from "./socket";
@@ -31,6 +32,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/chats", chatRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/images", imageRoutes);
 
 // Initialize Socket.IO
 initializeSocket(server);
