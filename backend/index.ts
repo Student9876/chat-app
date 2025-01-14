@@ -21,7 +21,7 @@ const server = http.createServer(app);
 
 // Middleware
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: "https://chat-app-zbe6.onrender.com",
     methods: ["GET", "POST"],
     credentials: true,
 }));
