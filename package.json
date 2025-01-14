@@ -7,10 +7,10 @@
 		"dev:frontend": "next dev",
 		"dev:backend": "ts-node ./backend/index.ts",
 		"build:frontend": "next build",
-		"build:backend": "cd backend && npm install && npm run build",
+		"build:backend": "cd backend && npm install",
 		"build": "npm run build:frontend && npm run build:backend",
 		"start:frontend": "next start",
-		"start:backend": "cd backend && npm run start",
+		"start:backend": "ts-node ./backend/index.ts",
 		"start": "concurrently \"npm run start:frontend\" \"npm run start:backend\"",
 		"lint": "next lint"
 	},
