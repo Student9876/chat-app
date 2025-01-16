@@ -66,10 +66,6 @@ const MainPage: React.FC = () => {
 		}
 	};
 
-	useEffect(() => {
-		fetchCurrentUser();
-	}, []);
-
 	const fetchCurrentUser = async () => {
 		const token = localStorage.getItem("token");
 		try {
@@ -83,6 +79,10 @@ const MainPage: React.FC = () => {
 			console.error("Failed to fetch current user:", error);
 		}
 	};
+
+	useEffect(() => {
+		if (isLoggedIn) fetchCurrentUser();
+	}, [isLoggedIn]);
 
 	const searchUsers = async () => {
 		if (!searchQuery.trim()) return;
