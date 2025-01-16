@@ -100,6 +100,8 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 	};
 
 	const handleImageUpload = async (chatId: string, file: File) => {
+		if (!socket) return;
+
 		const formData = new FormData();
 		formData.append("image", file);
 		formData.append("chatId", chatId);
@@ -107,6 +109,7 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 
 		const token = localStorage.getItem("token");
 
+		// Handle Image Upload
 		try {
 			const response = await fetch("http://localhost:5000/api/images/upload", {
 				method: "POST",
@@ -115,15 +118,11 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 			});
 
 			const data = await response.json();
-
-			if (response.ok) {
-				const savedMessage = data.savedMessage;
-				setMessages((prevMessages) => [...prevMessages, savedMessage]);
-			} else {
-				console.error("Image upload failed:", data.message);
-			}
+			socket.emit("sendMessage", data);
 		} catch (error) {
-			console.error("Error uploading image:", error);
+			console.error("Error sending message:", error);
+		} finally {
+			setNewMessage("");
 		}
 	};
 

@@ -2,6 +2,8 @@ import path from "path";
 import fs from "fs";
 import { Request, Response } from "express";
 import Message from "../models/Message"; // Import your Message model
+import { nanoid } from "nanoid";
+import Chat from "../models/Chat";
 
 // Ensure a folder exists, create it if it doesn't
 const ensureFolderExists = (folderPath: string) => {
@@ -9,6 +11,7 @@ const ensureFolderExists = (folderPath: string) => {
         fs.mkdirSync(folderPath, { recursive: true });
     }
 };
+
 
 // Handle image upload, save to public folder, and save as a message
 export const uploadImage = async (req: Request, res: Response): Promise<void> => {
@@ -28,7 +31,8 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
         }
 
         // Generate a unique file name (e.g., using timestamp + original name)
-        const uniqueFileName = `${Date.now()}-${req.file.originalname}`;
+        const fileExtension = path.extname(req.file.originalname);
+        const uniqueFileName = `${nanoid()}${fileExtension}`;
         const filePath = path.join(chatFolderPath, uniqueFileName);
 
         // Save the file to the chat folder
@@ -43,13 +47,17 @@ export const uploadImage = async (req: Request, res: Response): Promise<void> =>
             type: "image",
         });
         await newMessage.save();
+        const chat = await Chat.findById(chatId);
+        if (!chat) {
+            res.status(404).json({ message: "Chat not found" });
+            return;
+        }
+        console.log("Chat found:", chat);
 
-        // Respond with success and the saved message
-        res.status(200).json({
-            message: "Image uploaded and message saved successfully",
-            fileUrl,
-            savedMessage: newMessage,
-        });
+        chat.messages.push(String(newMessage._id));
+        chat.lastUpdated = new Date();
+        await chat.save();
+        res.status(200).json(newMessage);
     } catch (error) {
         console.error("Error uploading image:", error);
         res.status(500).json({ message: "Error uploading image", error });
