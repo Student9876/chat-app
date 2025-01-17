@@ -12,7 +12,8 @@ import messageRoutes from "./routes/messageRoutes";
 import imageRoutes from "./routes/imageRoutes";
 
 // Socket.IO setup
-import { initializeSocket } from "./socket";
+import { initializeSocket } from "./utils/socket";
+import { cloudinaryConfig } from "./utils/cloudinary";
 
 dotenv.config();
 
@@ -36,6 +37,13 @@ app.use("/api/images", imageRoutes);
 
 // Initialize Socket.IO
 initializeSocket(server);
+
+// Initialize Cloudinary
+cloudinaryConfig(
+    process.env.CLOUDINARY_CLOUD_NAME || "",
+    process.env.CLOUDINARY_API_KEY || "",
+    process.env.CLOUDINARY_API_SECRET || ""
+);
 
 // MongoDB connection and server start
 const PORT = process.env.PORT || 5000;
