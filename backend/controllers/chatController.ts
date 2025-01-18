@@ -74,7 +74,7 @@ export const initiateChat = async (req: AuthenticatedRequest, res: Response) => 
         console.log("Initiated chat:", chat);
 
         // Respond with the chat ID
-        res.status(200).json({ chatId: chat._id });
+        res.status(200).json({ chat });
         return;
     } catch (error: unknown) {
         console.error("Error initiating chat:", error);

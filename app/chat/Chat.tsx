@@ -105,7 +105,7 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 		const formData = new FormData();
 		formData.append("image", file);
 		formData.append("chatId", chatId);
-		formData.append("senderId", user?.id || "");
+		formData.append("senderId", String(user?.id) || "");
 
 		const token = localStorage.getItem("token");
 
@@ -139,7 +139,7 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 			{/* Messages Section */}
 			<div className="flex-1 overflow-y-auto p-4 bg-gray-50">
 				{messages.map((message) => (
-					<div key={message._id} className={`mb-2 ${message.senderId === user?.id ? "text-right" : "text-left"}`}>
+					<div key={message._id} className={`mb-2 ${message.senderId === (user?.id) ? "text-right" : "text-left"}`}>
 						{message.type === "text" ? (
 							<div className="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg shadow-md">{message.content}</div>
 						) : (

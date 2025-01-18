@@ -15,7 +15,12 @@ export const searchUsers = async (req: Request, res: Response) => {
     try {
         const users = await User.find({ email: { $regex: query, $options: "i" } });
         console.log("Found users:", users);
-        res.status(200).json({ results: users });
+        const users_ = users.map(user => ({
+            id: String(user._id),
+            username: user.username,
+            email: user.email
+        }))
+        res.status(200).json({ results: users_ });
         return;
     } catch (error) {
         console.error("Failed to search users:", error);
@@ -27,6 +32,13 @@ export const searchUsers = async (req: Request, res: Response) => {
 export const getCurrentUser = async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.id;
     console.log("Fetching current user:", userId);
-    res.status(200).json({ user: req.user });
+    const user = await User.findById(userId);
+    console.log("Current user:", user);
+    const user_ = {
+        id: String(user?._id),
+        username: user?.username,
+        email: user?.email
+    }
+    res.status(200).json({ user: user_ });
     return;
 }

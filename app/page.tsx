@@ -11,9 +11,9 @@ const MainPage: React.FC = () => {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [contacts, setContacts] = useState<ChatType[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
-	const [searchResults, setSearchResults] = useState<ChatType[]>([]);
+	const [searchResults, setSearchResults] = useState<UserType[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
-	const [user, setUser] = useState<UserType>({id: "", username: "", email: ""});
+	const [user, setUser] = useState<UserType | null>(null);
 	const router = useRouter();
 	const {logout} = useAuth();
 
@@ -104,6 +104,7 @@ const MainPage: React.FC = () => {
 
 	const initiateChat = async (userId: string) => {
 		const token = localStorage.getItem("token");
+		console.log("Initiating chat with user:", userId);
 		try {
 			const response = await fetch("http://localhost:5000/api/chats/initiate", {
 				method: "POST",
@@ -114,18 +115,21 @@ const MainPage: React.FC = () => {
 				body: JSON.stringify({userId}),
 			});
 			const data = await response.json();
-			if (data.chatId) {
-				setSelectedChat(data.chatId);
+			console.log("Initiated chat:", data.chat);
+			if (data) {
+				setSelectedChat(data.chat);
 				fetchContacts(); // Refresh contacts
 			}
 		} catch (error) {
 			console.error("Failed to initiate chat:", error);
 		}
 	};
-	const getOtherUser = (chat: ChatType) => {
-		const otherUserName = chat.title[user.id].userName || "Unknown User";
-		const otherUserId = chat.title[user.id].userId || "";
-		return {userName: otherUserName, userId: otherUserId};
+
+	const helper = (chat: ChatType) => {
+		console.log("Current User ID", user);
+		console.log("Chat Title", chat);
+		if (!user) return {userName: "ada", userId: "ada"};
+		return chat.title[user?.id];
 	};
 
 	if (!isLoggedIn) {
@@ -178,16 +182,16 @@ const MainPage: React.FC = () => {
 						) : searchResults.length > 0 ? (
 							searchResults.map((user) => (
 								<ChatTile
-									key={String(user._id)} // Added prefix to ensure uniqueness
-									username={String(user._id)}
-									onClick={() => initiateChat(String(user._id))}
+									key={user.id} // Added prefix to ensure uniqueness
+									username={user.email} // Fallback if username is not available
+									onClick={() => initiateChat(user.id)}
 								/>
 							))
 						) : contacts && contacts.length > 0 ? (
 							contacts.map((contact) => (
 								<ChatTile
 									key={String(contact._id)} // Fallback if chatId is not available
-									username={getOtherUser(contact).userName} // Fallback if username is not available
+									username={helper(contact).userName} // Fallback if username is not available
 									onClick={() => setSelectedChat(contact)}
 								/>
 							))
@@ -202,7 +206,7 @@ const MainPage: React.FC = () => {
 				{/* Chat Area */}
 				<div className="h-full md:w-2/3 w-full bg-gray-50">
 					{selectedChat && user ? (
-						<Chat chatId={String(selectedChat._id)} currentUser={getOtherUser(selectedChat)} />
+						<Chat chatId={String(selectedChat._id)} currentUser={helper(selectedChat)} />
 					) : (
 						<div className="flex items-center justify-center h-full text-gray-500">Select a chat to start messaging</div>
 					)}
