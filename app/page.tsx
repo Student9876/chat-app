@@ -128,7 +128,7 @@ const MainPage: React.FC = () => {
 	const helper = (chat: ChatType) => {
 		console.log("Current User ID", user);
 		console.log("Chat Title", chat);
-		if (!user) return {userName: "ada", userId: "ada"};
+		if (!user) return {userName: "unknown", userId: "unknown"};
 		return chat.title[user?.id];
 	};
 
