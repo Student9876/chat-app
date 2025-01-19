@@ -132,7 +132,6 @@ const Chat = ({chatId, currentUser}: {chatId: string; currentUser: TitleType}) =
 			<div className="p-4 bg-white shadow-md flex items-center">
 				<div className="ml-4">
 					<h2 className="text-lg font-semibold">{currentUser.userName}</h2>
-					<p className="text-sm text-gray-500">{currentUser.userId}</p>
 				</div>
 			</div>
 
