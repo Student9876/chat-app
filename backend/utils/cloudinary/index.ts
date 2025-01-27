@@ -6,6 +6,6 @@ export const cloudinaryConfig = (cloudName: string, apiKey: string, apiSecret: s
         api_key: apiKey,
         api_secret: apiSecret,
     });
-    console.log("Cloudinary initialized with", cloudName, apiKey, apiSecret);
+    console.log("Cloudinary initialized");
 }
 export default cloudinary;
