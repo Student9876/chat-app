@@ -14,6 +14,7 @@ const MainPage: React.FC = () => {
 	const [searchResults, setSearchResults] = useState<UserType[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [user, setUser] = useState<UserType | null>(null);
+	const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
 	const router = useRouter();
 	const {logout} = useAuth();
 
@@ -23,7 +24,6 @@ const MainPage: React.FC = () => {
 			const token = localStorage.getItem("token");
 			if (!token) {
 				setIsLoggedIn(false);
-				// router.push("/login");
 				return;
 			}
 			try {
@@ -44,7 +44,6 @@ const MainPage: React.FC = () => {
 		checkAuthentication();
 	}, [logout, router]);
 
-	// Fetch contacts and update on login or new chat
 	useEffect(() => {
 		if (isLoggedIn) fetchContacts();
 	}, [isLoggedIn]);
@@ -57,7 +56,6 @@ const MainPage: React.FC = () => {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
-			console.log("Fetched contacts", data.chats);
 			setContacts(data.chats);
 		} catch (error) {
 			console.error("Failed to fetch contacts:", error);
@@ -73,7 +71,6 @@ const MainPage: React.FC = () => {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
-			console.log("Current user:", data);
 			setUser(data.user);
 		} catch (error) {
 			console.error("Failed to fetch current user:", error);
@@ -94,7 +91,6 @@ const MainPage: React.FC = () => {
 			});
 			const data = await response.json();
 			setSearchResults(data.results || []);
-			console.log("Search results:", data.results);
 		} catch (error) {
 			console.error("Failed to search users:", error);
 		} finally {
@@ -104,7 +100,6 @@ const MainPage: React.FC = () => {
 
 	const initiateChat = async (userId: string) => {
 		const token = localStorage.getItem("token");
-		console.log("Initiating chat with user:", userId);
 		try {
 			const response = await fetch("http://localhost:5000/api/chats/initiate", {
 				method: "POST",
@@ -115,10 +110,10 @@ const MainPage: React.FC = () => {
 				body: JSON.stringify({userId}),
 			});
 			const data = await response.json();
-			console.log("Initiated chat:", data.chat);
 			if (data) {
 				setSelectedChat(data.chat);
-				fetchContacts(); // Refresh contacts
+				setIsMobileChatOpen(true);
+				fetchContacts();
 			}
 		} catch (error) {
 			console.error("Failed to initiate chat:", error);
@@ -126,23 +121,24 @@ const MainPage: React.FC = () => {
 	};
 
 	const helper = (chat: ChatType) => {
-		console.log("Current User ID", user);
-		console.log("Chat Title", chat);
 		if (!user) return {userName: "unknown", userId: "unknown"};
 		return chat.title[user?.id];
+	};
+
+	const handleChatSelect = (chat: ChatType) => {
+		setSelectedChat(chat);
+		setIsMobileChatOpen(true);
 	};
 
 	if (!isLoggedIn) {
 		return (
 			<div className="relative h-screen bg-gray-100">
-				{/* Angled Background Section */}
 				<div
 					className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-500"
 					style={{
-						clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 40%)", // Creates a 60-degree angle
-					}}></div>
-
-				{/* Content Section */}
+						clipPath: "polygon(0 0, 100% 0, 100% 100%, 0 40%)",
+					}}
+				/>
 				<div className="absolute inset-0 flex flex-col items-center text-white">
 					<h1 className="text-3xl md:text-4xl mt-[50%] md:mt-[20%] font-bold mb-4">Welcome to ChatApp</h1>
 					<p className="mb-6 text-lg text-center px-4 sm:px-0">
@@ -156,64 +152,57 @@ const MainPage: React.FC = () => {
 				</div>
 			</div>
 		);
-	} else {
-		return (
-			<div className="flex flex-col md:flex-row h-[90vh] bg-gray-100">
-				{/* Sidebar */}
-				<div className="md:w-1/3 w-full bg-white shadow-lg p-4">
-					{/* Search Section */}
-					<div className="mb-4">
-						<input
-							type="text"
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							onKeyDown={(e) => e.key === "Enter" && searchUsers()}
-							className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
-							placeholder="Search by email or username"
-						/>
-					</div>
+	}
 
-					{/* Contacts and Search Results */}
-					<div className="overflow-y-auto h-[calc(90vh-100px)]">
-						{isLoading ? (
-							<div key="loading" className="text-center text-gray-500">
-								Loading...
-							</div>
-						) : searchResults.length > 0 ? (
-							searchResults.map((user) => (
-								<ChatTile
-									key={user.id} // Added prefix to ensure uniqueness
-									username={user.email} // Fallback if username is not available
-									onClick={() => initiateChat(user.id)}
-								/>
-							))
-						) : contacts && contacts.length > 0 ? (
-							contacts.map((contact) => (
-								<ChatTile
-									key={String(contact._id)} // Fallback if chatId is not available
-									username={helper(contact).userName} // Fallback if username is not available
-									onClick={() => setSelectedChat(contact)}
-								/>
-							))
-						) : (
-							<div key="no-contacts" className="text-center text-gray-500">
-								No contacts yet. Search to start a conversation.
-							</div>
-						)}
-					</div>
+	return (
+		<div className="flex flex-col md:flex-row h-[92vh] bg-gray-100 relative overflow-hidden">
+			{/* Sidebar */}
+			<div
+				className={`md:w-1/3 w-full bg-white shadow-lg p-4 transition-transform duration-300 ease-in-out absolute md:relative inset-0
+			  ${isMobileChatOpen ? "-translate-x-full md:translate-x-0" : "translate-x-0"}`}>
+				<div className="mb-4">
+					<input
+						type="text"
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						onKeyDown={(e) => e.key === "Enter" && searchUsers()}
+						className="w-full p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
+						placeholder="Search by email or username"
+					/>
 				</div>
 
-				{/* Chat Area */}
-				<div className="h-full md:w-2/3 w-full bg-gray-50">
-					{selectedChat && user ? (
-						<Chat chatId={String(selectedChat._id)} currentUser={helper(selectedChat)} />
+				<div className="overflow-y-auto h-[calc(90vh-100px)]">
+					{isLoading ? (
+						<div className="text-center text-gray-500">Loading...</div>
+					) : searchResults.length > 0 ? (
+						searchResults.map((user) => <ChatTile key={user.id} username={user.email} onClick={() => initiateChat(user.id)} />)
+					) : contacts && contacts.length > 0 ? (
+						contacts.map((contact) => (
+							<ChatTile key={String(contact._id)} username={helper(contact).userName} onClick={() => handleChatSelect(contact)} />
+						))
 					) : (
-						<div className="flex items-center justify-center h-full text-gray-500">Select a chat to start messaging</div>
+						<div className="text-center text-gray-500">No contacts yet. Search to start a conversation.</div>
 					)}
 				</div>
 			</div>
-		);
-	}
+
+			{/* Chat Area */}
+			<div
+				className={`h-full md:w-2/3 w-full bg-gray-50 transition-transform duration-300 ease-in-out absolute md:relative inset-0
+			  ${isMobileChatOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}`}>
+				{selectedChat && user ? (
+					<Chat
+						chatId={String(selectedChat._id)}
+						currentUser={helper(selectedChat)}
+						onBack={() => setIsMobileChatOpen(false)}
+						isMobile={isMobileChatOpen}
+					/>
+				) : (
+					<div className="flex items-center justify-center h-full text-gray-500">Select a chat to start messaging</div>
+				)}
+			</div>
+		</div>
+	);
 };
 
 export default MainPage;
