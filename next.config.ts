@@ -3,11 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    domains: ['localhost', 'res.cloudinary.com'],
+    domains: ['localhost', 'res.cloudinary.com', 'render.com'],
   },
   env: {
-    PORT_BACKEND: process.env.PORT_BACKEND,
-    PORT_FRONTEND: process.env.PORT_FRONTEND
+    BACKEND_URL: process.env.BACKEND_URL,
+    FRONTEND_URL: process.env.FRONTEND_URL
   }
 };
 

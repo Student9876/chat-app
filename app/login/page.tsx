@@ -14,14 +14,15 @@ const LoginPage = () => {
 	const router = useRouter();
 	const {login} = useAuth(); // Use the login function from AuthContext
 
-	const PORT = process.env.PORT_BACKEND;
+	const BACKEND_URL = process.env.BACKEND_URL;
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
 		setError(null);
 
 		try {
-			const res = await axios.post(`http://localhost:${PORT}/api/auth/login`, {email, password});
+			const res = await axios.post(`${BACKEND_URL}/api/auth/login`, {email, password});
 			if (res.status === 200) {
 				// Extract token and user data
 				const {token, user} = res.data;

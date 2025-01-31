@@ -12,7 +12,7 @@ const RegisterPage = () => {
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
 
-	const PORT = process.env.PORT_BACKEND;
+	const BACKEND_URL = process.env.BACKEND_URL;
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -20,7 +20,7 @@ const RegisterPage = () => {
 		setError(null);
 
 		try {
-			const res = await axios.post(`http://localhost:${PORT}/api/auth/register`, {
+			const res = await axios.post(`${BACKEND_URL}/api/auth/register`, {
 				username,
 				email,
 				password,

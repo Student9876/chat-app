@@ -21,11 +21,10 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 	const [token, setToken] = useState<string | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-	const PORT = process.env.PORT_BACKEND;
-	
+	const BACKEND_URL = process.env.BACKEND_URL;
 	const fetchMessages = async (chatId: string) => {
 		try {
-			const response = await fetch(`http://localhost:${PORT}/api/messages/${chatId}`);
+			const response = await fetch(`${BACKEND_URL}/api/messages/${chatId}`);
 			const data = await response.json();
 			setMessages(data || []);
 		} catch (error) {
@@ -47,7 +46,7 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 	};
 
 	useEffect(() => {
-		const newSocket = io(`http://localhost:${PORT}`, {
+		const newSocket = io(`${BACKEND_URL}`, {
 			withCredentials: true,
 			transports: ["websocket"],
 		});
@@ -92,7 +91,7 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 		};
 
 		try {
-			const response = await fetch(`http://localhost:${PORT}/api/messages/send`, {
+			const response = await fetch(`${BACKEND_URL}/api/messages/send`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -120,7 +119,7 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 		const token = localStorage.getItem("token");
 
 		try {
-			const response = await fetch(`http://localhost:${PORT}/api/images/upload`, {
+			const response = await fetch(`${BACKEND_URL}/api/images/upload`, {
 				method: "POST",
 				headers: {Authorization: `Bearer ${token}`},
 				body: formData,
