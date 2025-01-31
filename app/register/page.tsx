@@ -12,13 +12,15 @@ const RegisterPage = () => {
 	const [loading, setLoading] = useState(false);
 	const router = useRouter();
 
+	const PORT = process.env.PORT_BACKEND;
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setLoading(true);
 		setError(null);
 
 		try {
-			const res = await axios.post("http://localhost:5000/api/auth/register", {
+			const res = await axios.post(`http://localhost:${PORT}/api/auth/register`, {
 				username,
 				email,
 				password,

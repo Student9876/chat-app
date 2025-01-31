@@ -18,6 +18,8 @@ const MainPage: React.FC = () => {
 	const router = useRouter();
 	const {logout} = useAuth();
 
+	const PORT = process.env.PORT_BACKEND;
+
 	// Authentication check
 	useEffect(() => {
 		const checkAuthentication = async () => {
@@ -27,7 +29,7 @@ const MainPage: React.FC = () => {
 				return;
 			}
 			try {
-				const response = await fetch("http://localhost:5000/api/auth/verify", {
+				const response = await fetch(`http://localhost:${PORT}/api/auth/verify`, {
 					headers: {Authorization: `Bearer ${token}`},
 				});
 				if (response.ok) {
@@ -52,7 +54,7 @@ const MainPage: React.FC = () => {
 		setIsLoading(true);
 		const token = localStorage.getItem("token");
 		try {
-			const response = await fetch("http://localhost:5000/api/chats", {
+			const response = await fetch(`http://localhost:${PORT}/api/chats`, {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
@@ -67,7 +69,7 @@ const MainPage: React.FC = () => {
 	const fetchCurrentUser = async () => {
 		const token = localStorage.getItem("token");
 		try {
-			const response = await fetch("http://localhost:5000/api/users/currentUser", {
+			const response = await fetch(`http://localhost:${PORT}/api/users/currentUser`, {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
@@ -86,7 +88,7 @@ const MainPage: React.FC = () => {
 		setIsLoading(true);
 		const token = localStorage.getItem("token");
 		try {
-			const response = await fetch(`http://localhost:5000/api/users/search?query=${searchQuery}`, {
+			const response = await fetch(`http://localhost:${PORT}/api/users/search?query=${searchQuery}`, {
 				headers: {Authorization: `Bearer ${token}`},
 			});
 			const data = await response.json();
@@ -101,7 +103,7 @@ const MainPage: React.FC = () => {
 	const initiateChat = async (userId: string) => {
 		const token = localStorage.getItem("token");
 		try {
-			const response = await fetch("http://localhost:5000/api/chats/initiate", {
+			const response = await fetch(`http://localhost:${PORT}/api/chats/initiate`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
