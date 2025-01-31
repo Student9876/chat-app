@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   images: {
-    domains: ['localhost', 'res.cloudinary.com', 'render.com'],
+    domains: ['localhost', 'res.cloudinary.com', 'render.com', `${process.env.BACKEND_URL}`],
   },
   env: {
     BACKEND_URL: process.env.BACKEND_URL,
