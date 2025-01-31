@@ -21,6 +21,7 @@ const app = express();
 const server = http.createServer(app);
 const PORT_FRONTEND = process.env.PORT_FRONTEND;
 const PORT_BACKEND = process.env.PORT_BACKEND;
+
 // Middleware
 app.use(cors({
     origin: [`http://localhost:${PORT_FRONTEND}`, `http://192.168.29.227:3000`],

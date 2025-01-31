@@ -35,7 +35,7 @@ const Navbar = () => {
 							<Image src={user_logo} width={30} height={30} alt={"user logo"} />
 						</div>
 						{isDropdownVisible && (
-							<div className="absolute top-full mt-2 left-0 bg-white text-black rounded shadow-lg p-4 w-56 transition-transform transform scale-100">
+							<div className="absolute top-full mt-2 left-0 border-[1px] border-slate-400 bg-white text-black rounded shadow-lg p-4 w-56 transition-transform transform scale-100 z-20">
 								<p className="font-semibold">Username: {user?.username || "Guest"}</p>
 								<p>Email: {user?.email || "N/A"}</p>
 								<button onClick={handleLogout} className="mt-2 w-full bg-red-500 text-white py-2 px-4 rounded">
