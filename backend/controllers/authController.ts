@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 const JWT_SECRET = process.env.JWT_SECRET || "abcd";
 
 const generateToken = (userId: string) => {
-    return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' });
+    return jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '24h' });
 };
 
 export const register = async (req: Request, res: Response): Promise<void> => {
