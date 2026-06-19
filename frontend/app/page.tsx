@@ -169,7 +169,7 @@ const MainPage: React.FC = () => {
 		<div className="flex flex-col md:flex-row flex-1 min-h-0 bg-background relative overflow-hidden text-foreground">
 			{/* Sidebar Contacts Area */}
 			<div
-				className={`md:w-1/3 lg:w-80 w-full border-r border-border bg-card flex flex-col transition-transform duration-300 ease-in-out absolute md:relative inset-0 z-30
+				className={`md:w-1/3 lg:w-80 w-full border-r border-border bg-card flex flex-col transition-transform transform-gpu duration-300 ease-in-out absolute md:relative inset-0 z-30
 			  ${isMobileChatOpen ? "-translate-x-full md:translate-x-0" : "translate-x-0"}`}>
 				
 				{/* Search Panel */}
@@ -248,7 +248,7 @@ const MainPage: React.FC = () => {
 
 			{/* Chat Viewport Area */}
 			<div
-				className={`h-full flex-1 bg-muted/10 transition-transform duration-300 ease-in-out absolute md:relative inset-0 z-20
+				className={`h-full flex-1 bg-muted/10 transition-transform transform-gpu duration-300 ease-in-out absolute md:relative inset-0 z-20
 			  ${isMobileChatOpen ? "translate-x-0" : "translate-x-full md:translate-x-0"}`}>
 				{selectedChat && user ? (
 					<Chat

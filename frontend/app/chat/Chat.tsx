@@ -27,11 +27,12 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 	const [newMessage, setNewMessage] = useState("");
 	const [user, setUser] = useState<UserType | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
+	const isInitialLoad = useRef(true);
 
 	const BACKEND_URL = process.env.BACKEND_URL;
 
-	const scrollToBottom = () => {
-		messagesEndRef.current?.scrollIntoView({behavior: "smooth"});
+	const scrollToBottom = (behavior: ScrollBehavior = "smooth") => {
+		messagesEndRef.current?.scrollIntoView({behavior});
 	};
 
 	const initializeUserAndToken = () => {
@@ -40,6 +41,10 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 			setUser(JSON.parse(user));
 		}
 	};
+
+	useEffect(() => {
+		isInitialLoad.current = true;
+	}, [chatId]);
 
 	useEffect(() => {
 		const newSocket = io(`${BACKEND_URL}`, {
@@ -72,7 +77,14 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 	}, [chatId, BACKEND_URL, queryClient]);
 
 	useEffect(() => {
-		scrollToBottom();
+		if (isMessagesLoading) return;
+
+		if (isInitialLoad.current) {
+			scrollToBottom("auto");
+			isInitialLoad.current = false;
+		} else {
+			scrollToBottom("smooth");
+		}
 	}, [messages, isMessagesLoading]);
 
 	useEffect(() => {
