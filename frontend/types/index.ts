@@ -1,4 +1,3 @@
-import { Types } from "mongoose";
 import { EventEmitter } from "events";
 
 // Interfaces 
@@ -31,12 +30,12 @@ export interface TitleType {
 }
 
 export interface ChatType {
-    _id: Types.ObjectId; // Mongoose ObjectId
+    _id: string; // Mongoose ObjectId representation as string
     title: Record<string, TitleType>; // Can be either an object or string
-    participants: Types.ObjectId[]; // Array of User IDs
+    participants: string[]; // Array of User IDs
     type: "private" | "group"; // Enum for chat type
     lastUpdated: Date; // Timestamp for last updated time
-    messages: Types.ObjectId[]; // Array of Message IDs
+    messages: string[]; // Array of Message IDs
     createdAt?: Date; // Automatically added by Mongoose timestamps
     updatedAt?: Date; // Automatically added by Mongoose timestamps
 }
