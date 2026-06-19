@@ -46,7 +46,7 @@ const LoginPage = () => {
 	};
 
 	return (
-		<div className="min-h-[92vh] flex items-center justify-center bg-background px-4 py-8">
+		<div className="flex-1 min-h-0 overflow-y-auto flex items-center justify-center bg-background px-4 py-8">
 			<Card className="w-full max-w-md shadow-lg border border-border">
 				<CardHeader className="space-y-1 text-center">
 					<CardTitle className="text-2xl font-bold tracking-tight">Login</CardTitle>

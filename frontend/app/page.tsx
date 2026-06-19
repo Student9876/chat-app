@@ -166,7 +166,7 @@ const MainPage: React.FC = () => {
 	}
 
 	return (
-		<div className="flex flex-col md:flex-row h-[92vh] bg-background relative overflow-hidden text-foreground">
+		<div className="flex flex-col md:flex-row flex-1 min-h-0 bg-background relative overflow-hidden text-foreground">
 			{/* Sidebar Contacts Area */}
 			<div
 				className={`md:w-1/3 lg:w-80 w-full border-r border-border bg-card flex flex-col transition-transform duration-300 ease-in-out absolute md:relative inset-0 z-30
@@ -198,8 +198,8 @@ const MainPage: React.FC = () => {
 				</div>
 
 				{/* Contacts Feed Scroll */}
-				<ScrollArea className="flex-1 px-3 py-2">
-					<div className="space-y-1">
+				<ScrollArea className="flex-1">
+					<div className="space-y-1 px-3 py-2">
 						{isChatsLoading || isLoading ? (
 							<div className="space-y-2 p-2">
 								{[...Array(4)].map((_, i) => (

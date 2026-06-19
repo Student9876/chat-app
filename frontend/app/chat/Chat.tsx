@@ -143,7 +143,7 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 			{/* Top Bar Header */}
 			<div className="p-4 bg-card border-b border-border flex items-center gap-3 shadow-sm">
 				{isMobile && (
-					<Button variant="ghost" size="icon" onClick={onBack} className="mr-1 h-9 w-9 rounded-full select-none cursor-pointer">
+					<Button variant="ghost" size="icon" onClick={onBack} className="md:hidden mr-1 h-9 w-9 rounded-full select-none cursor-pointer">
 						<ChevronLeft className="w-5 h-5" />
 					</Button>
 				)}
@@ -162,8 +162,8 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 			</div>
 
 			{/* Messages Feed */}
-			<ScrollArea className="flex-1 p-4 bg-muted/10">
-				<div className="space-y-3 pr-3">
+			<ScrollArea className="flex-1 bg-muted/10">
+				<div className="space-y-3 p-4">
 					{isMessagesLoading ? (
 						<div className="space-y-4 py-4 h-full flex flex-col justify-end">
 							<div className="flex items-end gap-2 max-w-[70%]">

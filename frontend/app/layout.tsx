@@ -12,7 +12,7 @@ export const metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
 	return (
 		<html lang="en" suppressHydrationWarning>
-			<body className="min-h-screen bg-background text-foreground transition-colors duration-200">
+			<body className="h-screen flex flex-col overflow-hidden bg-background text-foreground transition-colors duration-200">
 				<AuthProvider>
 					<QueryProvider>
 						<ThemeProvider attribute="class" defaultTheme="system" enableSystem>
