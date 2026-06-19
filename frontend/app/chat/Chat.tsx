@@ -229,6 +229,7 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 							<p className="text-xs">Start the conversation with {currentUser.userName}.</p>
 						</div>
 					)}
+					<div ref={messagesEndRef} />
 				</div>
 			</ScrollArea>
 
