@@ -1,4 +1,5 @@
 import {AuthProvider} from "./context/AuthContext"; // Import AuthProvider
+import {QueryProvider} from "./context/QueryProvider"; // Import QueryProvider
 import Navbar from "../components/Navbar"; // Import Navbar
 import "./globals.css"; // Import global styles
 
@@ -12,10 +13,12 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
 		<html lang="en">
 			<body>
 				<AuthProvider>
-					{/* Navbar included here */}
-					<Navbar />
-					{/* Page content */}
-					{children}
+					<QueryProvider>
+						{/* Navbar included here */}
+						<Navbar />
+						{/* Page content */}
+						{children}
+					</QueryProvider>
 				</AuthProvider>
 			</body>
 		</html>

@@ -4,12 +4,12 @@ import Chat from "./chat/Chat";
 import ChatTile from "./chat/ChatTile";
 import {useRouter} from "next/navigation";
 import {useAuth} from "./context/AuthContext";
+import {useChats} from "./hooks/useChats";
 import {UserType, ChatType} from "@/types";
 
 const MainPage: React.FC = () => {
 	const [selectedChat, setSelectedChat] = useState<ChatType | null>(null);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
-	const [contacts, setContacts] = useState<ChatType[]>([]);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [searchResults, setSearchResults] = useState<UserType[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +19,8 @@ const MainPage: React.FC = () => {
 	const {logout} = useAuth();
 
 	const BACKEND_URL = process.env.BACKEND_URL;
+
+	const { data: contacts, isLoading: isChatsLoading, refetch: refetchContacts } = useChats(isLoggedIn);
 
 	// Authentication check
 	useEffect(() => {
@@ -45,26 +47,6 @@ const MainPage: React.FC = () => {
 		};
 		checkAuthentication();
 	}, [logout, router]);
-
-	useEffect(() => {
-		if (isLoggedIn) fetchContacts();
-	}, [isLoggedIn]);
-
-	const fetchContacts = async () => {
-		setIsLoading(true);
-		const token = localStorage.getItem("token");
-		try {
-			const response = await fetch(`${BACKEND_URL}/api/chats`, {
-				headers: {Authorization: `Bearer ${token}`},
-			});
-			const data = await response.json();
-			setContacts(data.chats);
-		} catch (error) {
-			console.error("Failed to fetch contacts:", error);
-		} finally {
-			setIsLoading(false);
-		}
-	};
 
 	const fetchCurrentUser = async () => {
 		const token = localStorage.getItem("token");
@@ -115,7 +97,7 @@ const MainPage: React.FC = () => {
 			if (data) {
 				setSelectedChat(data.chat);
 				setIsMobileChatOpen(true);
-				fetchContacts();
+				refetchContacts();
 			}
 		} catch (error) {
 			console.error("Failed to initiate chat:", error);
@@ -174,7 +156,7 @@ const MainPage: React.FC = () => {
 				</div>
 
 				<div className="overflow-y-auto h-[calc(90vh-100px)]">
-					{isLoading ? (
+					{isChatsLoading || isLoading ? (
 						<div className="text-center text-gray-500">Loading...</div>
 					) : searchResults.length > 0 ? (
 						searchResults.map((user) => <ChatTile key={user.id} username={user.email} onClick={() => initiateChat(user.id)} />)

@@ -5,6 +5,9 @@ import {ChevronLeft} from "lucide-react";
 import attachIcon from "./icons/attach-file.png";
 import sendIcon from "./icons/send.png";
 import {MessageType, UserType, TitleType} from "@/types";
+import {useQueryClient} from "@tanstack/react-query";
+import {useMessages} from "../hooks/useMessages";
+import {useSendMessage} from "../hooks/useSendMessage";
 
 interface ChatProps {
 	chatId: string;
@@ -14,23 +17,16 @@ interface ChatProps {
 }
 
 const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
-	const [messages, setMessages] = useState<MessageType[]>([]);
+	const queryClient = useQueryClient();
+	const { data: messages = [] } = useMessages(chatId);
+	const sendMessageMutation = useSendMessage();
+
 	const [socket, setSocket] = useState<Socket | null>(null);
 	const [newMessage, setNewMessage] = useState("");
 	const [user, setUser] = useState<UserType | null>(null);
-	const [token, setToken] = useState<string | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
 	const BACKEND_URL = process.env.BACKEND_URL;
-	const fetchMessages = async (chatId: string) => {
-		try {
-			const response = await fetch(`${BACKEND_URL}/api/messages/${chatId}`);
-			const data = await response.json();
-			setMessages(data || []);
-		} catch (error) {
-			console.error("Failed to fetch messages:", error);
-		}
-	};
 
 	const scrollToBottom = () => {
 		messagesEndRef.current?.scrollIntoView({behavior: "smooth"});
@@ -38,10 +34,8 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 
 	const initializeUserAndToken = () => {
 		const user = localStorage.getItem("user");
-		const token = localStorage.getItem("token");
-		if (user && token) {
+		if (user) {
 			setUser(JSON.parse(user));
-			setToken(token);
 		}
 	};
 
@@ -59,18 +53,21 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 		});
 
 		newSocket.on("messageReceived", (newMessage: MessageType) => {
-			setMessages((prevMessages) => [...prevMessages, newMessage]);
+			if (newMessage.chatId === chatId) {
+				queryClient.setQueryData<MessageType[]>(["messages", chatId], (old) => {
+					if (!old) return [newMessage];
+					const exists = old.some((m) => m._id === newMessage._id);
+					if (exists) return old;
+					return [...old, newMessage];
+				});
+			}
 		});
 
 		return () => {
 			newSocket.off("messageReceived");
 			newSocket.disconnect();
 		};
-	}, [chatId]);
-
-	useEffect(() => {
-		fetchMessages(chatId);
-	}, [chatId]);
+	}, [chatId, BACKEND_URL, queryClient]);
 
 	useEffect(() => {
 		scrollToBottom();
@@ -81,35 +78,33 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 	}, []);
 
 	const sendMessage = async () => {
-		if (!socket || !newMessage.trim()) return;
+		if (!socket || !newMessage.trim() || !user) return;
 
-		const messageData = {
+		const messageText = newMessage.trim();
+		setNewMessage("");
+
+		const messagePayload = {
 			chatId,
-			senderId: user?.id,
-			content: newMessage.trim(),
+			senderId: user.id,
+			content: messageText,
 			type: "text",
 		};
 
+		const tempId = `opt-${Date.now()}`;
+
 		try {
-			const response = await fetch(`${BACKEND_URL}/api/messages/send`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${token}`,
-				},
-				body: JSON.stringify(messageData),
+			const savedMessage = await sendMessageMutation.mutateAsync({
+				payload: messagePayload,
+				tempId,
 			});
-			const data = await response.json();
-			socket.emit("sendMessage", data);
+			socket.emit("sendMessage", savedMessage);
 		} catch (error) {
 			console.error("Error sending message:", error);
-		} finally {
-			setNewMessage("");
 		}
 	};
 
 	const handleImageUpload = async (chatId: string, file: File) => {
-		if (!socket) return;
+		if (!socket || !user) return;
 
 		const formData = new FormData();
 		formData.append("image", file);
@@ -126,6 +121,11 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 			});
 
 			const data = await response.json();
+			// Add the new image message to the query cache
+			queryClient.setQueryData<MessageType[]>(["messages", chatId], (old) => {
+				if (!old) return [data];
+				return [...old, data];
+			});
 			socket.emit("sendMessage", data);
 		} catch (error) {
 			console.error("Error sending message:", error);

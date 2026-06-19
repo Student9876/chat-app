@@ -3,7 +3,7 @@
 import {useState} from "react";
 import axios from "axios";
 import {useRouter} from "next/navigation";
-import {useAuth} from "../../app/context/AuthContext";
+import {useAuth} from "@/app/context/AuthContext";
 
 const LoginPage = () => {
 	const [email, setEmail] = useState<string>("");
