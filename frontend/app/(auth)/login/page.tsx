@@ -1,9 +1,15 @@
 "use client";
 
-import {useState} from "react";
+import { useState } from "react";
 import axios from "axios";
-import {useRouter} from "next/navigation";
-import {useAuth} from "@/app/context/AuthContext";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext";
+import Link from "next/link";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 
 const LoginPage = () => {
 	const [email, setEmail] = useState<string>("");
@@ -12,7 +18,7 @@ const LoginPage = () => {
 	const [loading, setLoading] = useState<boolean>(false);
 
 	const router = useRouter();
-	const {login} = useAuth(); // Use the login function from AuthContext
+	const { login } = useAuth();
 
 	const BACKEND_URL = process.env.BACKEND_URL;
 
@@ -22,15 +28,10 @@ const LoginPage = () => {
 		setError(null);
 
 		try {
-			const res = await axios.post(`${BACKEND_URL}/api/auth/login`, {email, password});
+			const res = await axios.post(`${BACKEND_URL}/api/auth/login`, { email, password });
 			if (res.status === 200) {
-				// Extract token and user data
-				const {token, user} = res.data;
-
-				// Use AuthContext login function
+				const { token, user } = res.data;
 				login(token, user);
-
-				// Redirect to Home
 				router.push("/");
 			}
 		} catch (err) {
@@ -45,57 +46,77 @@ const LoginPage = () => {
 	};
 
 	return (
-		<div className="min-h-screen flex items-center justify-center bg-gray-100">
-			<div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
-				<h2 className="text-2xl font-bold text-center mb-6">Login</h2>
-				<form onSubmit={handleSubmit} className="space-y-6">
-					<div>
-						<label htmlFor="email" className="block text-sm font-semibold">
-							Email
-						</label>
-						<input
-							type="email"
-							id="email"
-							name="email"
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							className="w-full p-2 border border-gray-300 rounded-md"
-							placeholder="Enter your email"
-							required
-						/>
-					</div>
-					<div>
-						<label htmlFor="password" className="block text-sm font-semibold">
-							Password
-						</label>
-						<input
-							type="password"
-							id="password"
-							name="password"
-							value={password}
-							onChange={(e) => setPassword(e.target.value)}
-							className="w-full p-2 border border-gray-300 rounded-md"
-							placeholder="Enter your password"
-							required
-						/>
-					</div>
-					{error && <p className="text-red-500 text-sm">{error}</p>}
-					<button
-						type="submit"
-						disabled={loading}
-						className={`w-full p-2 text-white rounded-md ${loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"}`}>
-						{loading ? "Logging in..." : "Login"}
-					</button>
+		<div className="min-h-[92vh] flex items-center justify-center bg-background px-4 py-8">
+			<Card className="w-full max-w-md shadow-lg border border-border">
+				<CardHeader className="space-y-1 text-center">
+					<CardTitle className="text-2xl font-bold tracking-tight">Login</CardTitle>
+					<CardDescription>
+						Enter your email and password to log into your account
+					</CardDescription>
+				</CardHeader>
+				<form onSubmit={handleSubmit}>
+					<CardContent className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="email">Email</Label>
+							<div className="relative">
+								<span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
+									<Mail className="w-4 h-4" />
+								</span>
+								<Input
+									type="email"
+									id="email"
+									placeholder="name@example.com"
+									value={email}
+									onChange={(e) => setEmail(e.target.value)}
+									className="pl-9"
+									required
+								/>
+							</div>
+						</div>
+						<div className="space-y-2">
+							<Label htmlFor="password">Password</Label>
+							<div className="relative">
+								<span className="absolute inset-y-0 left-0 pl-3 flex items-center text-muted-foreground">
+									<Lock className="w-4 h-4" />
+								</span>
+								<Input
+									type="password"
+									id="password"
+									placeholder="••••••••"
+									value={password}
+									onChange={(e) => setPassword(e.target.value)}
+									className="pl-9"
+									required
+								/>
+							</div>
+						</div>
+						{error && (
+							<div className="flex items-center gap-2 text-destructive bg-destructive/10 rounded-lg p-3 text-sm border border-destructive/20">
+								<AlertCircle className="w-4 h-4 shrink-0" />
+								<p>{error}</p>
+							</div>
+						)}
+					</CardContent>
+					<CardFooter className="flex flex-col space-y-4">
+						<Button type="submit" className="w-full" disabled={loading}>
+							{loading ? (
+								<>
+									<Loader2 className="w-4 h-4 mr-2 animate-spin" />
+									Logging in...
+								</>
+							) : (
+								"Login"
+							)}
+						</Button>
+						<div className="text-center text-sm text-muted-foreground w-full">
+							Don&apos;t have an account?{" "}
+							<Link href="/register" className="text-primary hover:underline font-semibold">
+								Register here
+							</Link>
+						</div>
+					</CardFooter>
 				</form>
-				<div className="text-center mt-4">
-					<p className="text-sm">
-						Don&apos;t have an account?
-						<a href="/register" className="text-blue-600 hover:underline">
-							Register here
-						</a>
-					</p>
-				</div>
-			</div>
+			</Card>
 		</div>
 	);
 };

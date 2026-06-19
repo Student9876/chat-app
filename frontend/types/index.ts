@@ -49,6 +49,7 @@ export interface AuthContextProps {
 
 export interface ChatTileProps {
     username: string;
+    isSelected?: boolean;
     onClick: () => void;
 }
 
