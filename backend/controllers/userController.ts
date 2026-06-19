@@ -13,13 +13,19 @@ export const searchUsers = async (req: Request, res: Response) => {
     console.log("Searching for users with query:", query);
 
     try {
-        const users = await User.find({ email: { $regex: query, $options: "i" } });
+        const searchQuery = String(query || "");
+        const users = await User.find({
+            $or: [
+                { email: { $regex: searchQuery, $options: "i" } },
+                { username: { $regex: searchQuery, $options: "i" } }
+            ]
+        });
         console.log("Found users:", users);
         const users_ = users.map(user => ({
             id: String(user._id),
             username: user.username,
             email: user.email
-        }))
+        }));
         res.status(200).json({ results: users_ });
         return;
     } catch (error) {

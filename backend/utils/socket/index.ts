@@ -4,9 +4,22 @@ import { Server as HTTPServer } from "http"; // Import the type for an HTTP serv
 let io: Server | null = null;
 
 export const initializeSocket = (server: HTTPServer): void => {
+    const allowedOrigins = [
+        "http://localhost:3000",
+        "http://localhost:3001",
+        "http://127.0.0.1:3000"
+    ];
+    if (process.env.FRONTEND_URL) {
+        const url = process.env.FRONTEND_URL;
+        allowedOrigins.push(url);
+        if (url.endsWith("/")) {
+            allowedOrigins.push(url.slice(0, -1));
+        }
+    }
+
     io = new Server(server, {
         cors: {
-            origin: "https://mychatapp-60.vercel.app/",
+            origin: allowedOrigins,
             methods: ["GET", "POST"],
             credentials: true,
         },
