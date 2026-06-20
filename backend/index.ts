@@ -30,6 +30,11 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Health check route for cron pings / keeping server awake
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "OK", timestamp: new Date() });
+});
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/chats", chatRoutes);
