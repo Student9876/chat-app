@@ -13,6 +13,10 @@ const messageSchema = new mongoose.Schema({
     },
 });
 
+// Compound index for optimizing paginated message queries.
+// Speeds up queries filtering by chatId and sorting by timestamp descending (newest first).
+messageSchema.index({ chatId: 1, timestamp: -1 });
+
 const Message = mongoose.model("Message", messageSchema);
 
 export default Message;

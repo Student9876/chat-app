@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, InfiniteData } from "@tanstack/react-query";
 import { MessageType } from "@/types";
 
 interface SendMessagePayload {
@@ -16,7 +16,7 @@ export const useSendMessage = () => {
 		MessageType, // response type
 		Error, // error type
 		{ payload: SendMessagePayload; tempId: string }, // variables type
-		{ previousMessages: MessageType[] | undefined; tempId: string } // context type
+		{ previousMessages: InfiniteData<MessageType[]> | undefined; tempId: string } // context type
 	>({
 		mutationFn: async ({ payload }) => {
 			const token = localStorage.getItem("token");
@@ -37,7 +37,7 @@ export const useSendMessage = () => {
 			await queryClient.cancelQueries({ queryKey: ["messages", payload.chatId] });
 
 			// Snapshot the previous value
-			const previousMessages = queryClient.getQueryData<MessageType[]>(["messages", payload.chatId]);
+			const previousMessages = queryClient.getQueryData<InfiniteData<MessageType[]>>(["messages", payload.chatId]);
 
 			// Optimistically update to the new value
 			const optimisticMsg: MessageType = {
@@ -49,9 +49,21 @@ export const useSendMessage = () => {
 				timestamp: new Date(),
 			};
 
-			queryClient.setQueryData<MessageType[]>(
+			queryClient.setQueryData<InfiniteData<MessageType[]>>(
 				["messages", payload.chatId],
-				(old) => [...(old || []), optimisticMsg]
+				(old) => {
+					if (!old) return { pages: [[optimisticMsg]], pageParams: [null] };
+					const newPages = [...old.pages];
+					if (newPages.length > 0) {
+						newPages[0] = [...newPages[0], optimisticMsg];
+					} else {
+						newPages[0] = [optimisticMsg];
+					}
+					return {
+						...old,
+						pages: newPages,
+					};
+				}
 			);
 
 			// Return a context object with the snapshotted value
@@ -69,9 +81,18 @@ export const useSendMessage = () => {
 		// Always refetch or update after success or error
 		onSuccess: (data, variables, context) => {
 			// Replace optimistic message with the real one in query cache
-			queryClient.setQueryData<MessageType[]>(
+			queryClient.setQueryData<InfiniteData<MessageType[]>>(
 				["messages", variables.payload.chatId],
-				(old) => (old || []).map((m) => m._id === context?.tempId ? data : m)
+				(old) => {
+					if (!old) return old;
+					const newPages = old.pages.map((page) =>
+						page.map((m) => (m._id === context?.tempId ? data : m))
+					);
+					return {
+						...old,
+						pages: newPages,
+					};
+				}
 			);
 		},
 	});

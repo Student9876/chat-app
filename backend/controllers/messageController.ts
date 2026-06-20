@@ -45,14 +45,31 @@ export const sendMessage = async (req: Request, res: Response): Promise<void> =>
 };
 
 
-// Get all messages for a specific chat
+// Get all messages for a specific chat (paginated using cursor-based pagination)
 export const getMessages = async (req: Request, res: Response): Promise<void> => {
     try {
         const { chatId } = req.params;
-        console.log("Fetching messages for chat:", chatId);
+        // limit: number of messages per page (defaults to 20)
+        // before: ISO string timestamp representing the cursor to load messages older than this point
+        const { limit = "20", before } = req.query;
+        console.log(`Fetching messages for chat: ${chatId}, limit: ${limit}, before: ${before}`);
 
-        // Fetch all messages for the specified chat
-        const messages = await Message.find({ chatId }).sort({ createdAt: 1 });
+        const parsedLimit = parseInt(limit as string, 10) || 20;
+
+        const query: any = { chatId };
+        if (before) {
+            // Only fetch messages sent BEFORE the cursor timestamp to retrieve historical chats
+            query.timestamp = { $lt: new Date(before as string) };
+        }
+
+        // Fetch newest messages first and apply limit
+        // Sorting by timestamp desc (-1) fetches the most recent historical messages.
+        const messages = await Message.find(query)
+            .sort({ timestamp: -1 })
+            .limit(parsedLimit);
+
+        // Reverse the array to send them in chronological (oldest to newest) order to the frontend
+        messages.reverse();
 
         res.status(200).json(messages);
     } catch (error) {

@@ -1,9 +1,9 @@
-import {useEffect, useRef, useState} from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import {io, Socket} from "socket.io-client";
 import Image from "next/image";
 import {ChevronLeft, Paperclip, Send} from "lucide-react";
 import {MessageType, UserType, TitleType} from "@/types";
-import {useQueryClient} from "@tanstack/react-query";
+import {useQueryClient, InfiniteData} from "@tanstack/react-query";
 import {useMessages} from "../hooks/useMessages";
 import {useSendMessage} from "../hooks/useSendMessage";
 import {ScrollArea} from "@/components/ui/scroll-area";
@@ -20,7 +20,25 @@ interface ChatProps {
 
 const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 	const queryClient = useQueryClient();
-	const { data: messages = [], isLoading: isMessagesLoading } = useMessages(chatId);
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoading: isMessagesLoading
+	} = useMessages(chatId);
+	// Flattens and reverses the paginated query pages to display them chronologically.
+	// Also filters out duplicates by ID to guarantee key uniqueness in React rendering.
+	const messages = useMemo(() => {
+		if (!data) return [];
+		const flatMessages = [...data.pages].reverse().flat();
+		const seen = new Set<string>();
+		return flatMessages.filter((m) => {
+			if (seen.has(m._id)) return false;
+			seen.add(m._id);
+			return true;
+		});
+	}, [data]);
 	const sendMessageMutation = useSendMessage();
 
 	const [socket, setSocket] = useState<Socket | null>(null);
@@ -28,6 +46,10 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 	const [user, setUser] = useState<UserType | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 	const isInitialLoad = useRef(true);
+	const firstMessageIdRef = useRef<string | null>(null);
+	const loadMoreSentinelRef = useRef<HTMLDivElement | null>(null);
+	const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+	const scrollSnapshotRef = useRef<{ scrollHeight: number; scrollTop: number } | null>(null);
 
 	const BACKEND_URL = process.env.BACKEND_URL;
 
@@ -44,7 +66,44 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 
 	useEffect(() => {
 		isInitialLoad.current = true;
+		firstMessageIdRef.current = null;
+		scrollSnapshotRef.current = null;
 	}, [chatId]);
+
+	// Automatically fetches the next page of older messages when the user scrolls 
+	// to the top and triggers intersection with the loadMoreSentinel ref.
+	useEffect(() => {
+		if (!hasNextPage || isFetchingNextPage) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting) {
+					// Snapshot current scroll height and position before fetching new data.
+					// This is required to calculate scroll anchoring adjustment after updates.
+					const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+					if (viewport) {
+						scrollSnapshotRef.current = {
+							scrollHeight: viewport.scrollHeight,
+							scrollTop: viewport.scrollTop,
+						};
+					}
+					fetchNextPage();
+				}
+			},
+			{ threshold: 0.1 }
+		);
+
+		const sentinel = loadMoreSentinelRef.current;
+		if (sentinel) {
+			observer.observe(sentinel);
+		}
+
+		return () => {
+			if (sentinel) {
+				observer.unobserve(sentinel);
+			}
+		};
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	useEffect(() => {
 		const newSocket = io(`${BACKEND_URL}`, {
@@ -61,12 +120,26 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 
 		newSocket.on("messageReceived", (newMessage: MessageType) => {
 			if (newMessage.chatId === chatId) {
-				queryClient.setQueryData<MessageType[]>(["messages", chatId], (old) => {
-					if (!old) return [newMessage];
-					const exists = old.some((m) => m._id === newMessage._id);
-					if (exists) return old;
-					return [...old, newMessage];
-				});
+				queryClient.setQueryData<InfiniteData<MessageType[]>>(
+					["messages", chatId],
+					(old) => {
+						if (!old) return { pages: [[newMessage]], pageParams: [null] };
+						const exists = old.pages.some((page) =>
+							page.some((m) => m._id === newMessage._id)
+						);
+						if (exists) return old;
+						const newPages = [...old.pages];
+						if (newPages.length > 0) {
+							newPages[0] = [...newPages[0], newMessage];
+						} else {
+							newPages[0] = [newMessage];
+						}
+						return {
+							...old,
+							pages: newPages,
+						};
+					}
+				);
 			}
 		});
 
@@ -76,8 +149,27 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 		};
 	}, [chatId, BACKEND_URL, queryClient]);
 
+	// Handles auto-scrolling (bottom-locking on initial load and new messages,
+	// and manual scroll anchoring to adjust scrollTop when older historical messages are prepended).
 	useEffect(() => {
-		if (isMessagesLoading) return;
+		if (isMessagesLoading || messages.length === 0) return;
+
+		const currentFirstId = messages[0]._id;
+		const hadOlderMessagesLoaded = firstMessageIdRef.current && firstMessageIdRef.current !== currentFirstId;
+		firstMessageIdRef.current = currentFirstId;
+
+		if (hadOlderMessagesLoaded) {
+			// Older messages were prepended: adjust scrollTop by the height of newly prepended content
+			// to preserve the user's viewport focus on the messages they were currently reading.
+			const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+			const snapshot = scrollSnapshotRef.current;
+			if (viewport && snapshot) {
+				const heightDiff = viewport.scrollHeight - snapshot.scrollHeight;
+				viewport.scrollTop = snapshot.scrollTop + heightDiff;
+			}
+			scrollSnapshotRef.current = null;
+			return;
+		}
 
 		if (isInitialLoad.current) {
 			scrollToBottom("auto");
@@ -136,10 +228,26 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 
 			const data = await response.json();
 			// Add the new image message to the query cache
-			queryClient.setQueryData<MessageType[]>(["messages", chatId], (old) => {
-				if (!old) return [data];
-				return [...old, data];
-			});
+			queryClient.setQueryData<InfiniteData<MessageType[]>>(
+				["messages", chatId],
+				(old) => {
+					if (!old) return { pages: [[data]], pageParams: [null] };
+					const exists = old.pages.some((page) =>
+						page.some((m) => m._id === data._id)
+					);
+					if (exists) return old;
+					const newPages = [...old.pages];
+					if (newPages.length > 0) {
+						newPages[0] = [...newPages[0], data];
+					} else {
+						newPages[0] = [data];
+					}
+					return {
+						...old,
+						pages: newPages,
+					};
+				}
+			);
 			socket.emit("sendMessage", data);
 		} catch (error) {
 			console.error("Error sending message:", error);
@@ -174,8 +282,15 @@ const Chat = ({chatId, currentUser, onBack, isMobile}: ChatProps) => {
 			</div>
 
 			{/* Messages Feed */}
-			<ScrollArea className="flex-1 bg-muted/10">
+			<ScrollArea ref={scrollAreaRef} className="flex-1 bg-muted/10">
 				<div className="space-y-3 p-4">
+					{!isMessagesLoading && hasNextPage && (
+						<div ref={loadMoreSentinelRef} className="flex justify-center pb-2 border-b border-border/50">
+							<span className="text-xs text-muted-foreground animate-pulse select-none">
+								Loading older messages...
+							</span>
+						</div>
+					)}
 					{isMessagesLoading ? (
 						<div className="space-y-4 py-4 h-full flex flex-col justify-end">
 							<div className="flex items-end gap-2 max-w-[70%]">
