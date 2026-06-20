@@ -23,8 +23,20 @@ const PORT = process.env.PORT || 5000;
 const FRONTEND_URL = process.env.FRONTEND_URL || "";
 
 // Middleware
+const allowedOrigins = [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000"
+];
+if (FRONTEND_URL) {
+    allowedOrigins.push(FRONTEND_URL);
+    if (FRONTEND_URL.endsWith("/")) {
+        allowedOrigins.push(FRONTEND_URL.slice(0, -1));
+    }
+}
+
 app.use(cors({
-    origin: [ FRONTEND_URL],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
 }));
